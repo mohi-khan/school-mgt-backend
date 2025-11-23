@@ -5,7 +5,7 @@ import { requirePermission } from '../services/utils/jwt.utils'
 import {
   createClasses,
   editClasses,
-  getAllClassess,
+  getAllClasses,
   getClassesById,
 } from '../services/classes.service'
 import { z } from 'zod'
@@ -55,7 +55,7 @@ export const getAllClassessController = async (
 ) => {
   try {
     // requirePermission(req, 'view_account_head')
-    const classess = await getAllClassess()
+    const classess = await getAllClasses()
 
     res.status(200).json(classess)
   } catch (error) {
