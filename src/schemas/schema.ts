@@ -58,41 +58,76 @@ export const userRolesModel = mysqlTable('user_roles', {
 // ========================
 // Business Domain Tables
 // ========================
-export const classesModel = mysqlTable("classes", {
-  classId: int("class_id").primaryKey().autoincrement(),
-  className: varchar("class_name", { length: 50 }).notNull(),
-  classCode: varchar("class_code", { length: 20 }).unique(),
-  description: varchar("description", { length: 255 }),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").onUpdateNow(),
-});
+export const classesModel = mysqlTable('classes', {
+  classId: int('class_id').primaryKey().autoincrement(),
+  className: varchar('class_name', { length: 50 }).notNull(),
+  classCode: varchar('class_code', { length: 20 }).unique(),
+  description: varchar('description', { length: 255 }),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
 
-export const sectionsModel = mysqlTable("sections", {
-  sectionId: int("section_id").primaryKey().autoincrement(),
-  sectionName: varchar("section_name", { length: 50 }).notNull(),
-  sectionCode: varchar("section_code", { length: 20 }),
-  description: varchar("description", { length: 255 }),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").onUpdateNow(),
-});
+export const sectionsModel = mysqlTable('sections', {
+  sectionId: int('section_id').primaryKey().autoincrement(),
+  sectionName: varchar('section_name', { length: 50 }).notNull(),
+  sectionCode: varchar('section_code', { length: 20 }),
+  description: varchar('description', { length: 255 }),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
 
-export const classSectionsModel = mysqlTable("class_sections", {
-  classSectionId: int("class_section_id").primaryKey().autoincrement(),
-  classId: int("class_id").references(() => classesModel.classId, {
+export const classSectionsModel = mysqlTable('class_sections', {
+  classSectionId: int('class_section_id').primaryKey().autoincrement(),
+  classId: int('class_id').references(() => classesModel.classId, {
     onDelete: 'set null',
   }),
-  sectionId: int("section_id").references(() => sectionsModel.sectionId, {
+  sectionId: int('section_id').references(() => sectionsModel.sectionId, {
     onDelete: 'set null',
   }),
-  roomNo: varchar("room_no", { length: 20 }),
-  classTeacherId: int("class_teacher_id"),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").onUpdateNow(),
-});
+  roomNo: varchar('room_no', { length: 20 }),
+  classTeacherId: int('class_teacher_id'),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
 
+export const feesGroupModel = mysqlTable('fees_groups', {
+  feesGroupId: int('fees_group_id').primaryKey().autoincrement(),
+  groupName: varchar('group_name', { length: 100 }).notNull(),
+  description: text('description'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
+
+export const feesTypeModel = mysqlTable('fees_types', {
+  feesTypeId: int('fees_type_id').primaryKey().autoincrement(),
+  typeName: varchar('type_name', { length: 100 }).notNull(),
+  feesCode: varchar('fees_code', { length: 50 }).unique(),
+  description: text('description'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
+
+export const feesMasterModel = mysqlTable('fees_master', {
+  feesMasterId: int('fees_master_id').primaryKey().autoincrement(),
+  feesGroupId: int('fees_group_id').references(() => feesGroupModel.feesGroupId, {
+    onDelete: 'set null',
+  }),
+  feesTypeId: int('fees_type_id').references(() => feesTypeModel.feesTypeId, {
+    onDelete: 'set null',
+  }),
+  dueDate: date('due_date').notNull(),
+  amount: double('amount').notNull(),
+  fineType: mysqlEnum('fine_type', ['none', 'percentage', 'fixed amount']).notNull(),
+  percentageFineAmount: double('percentage_fine_amount'),
+  fixedFineAmount: double('fixed_fine_amount'),
+  fineAmount: double('fine_amount').notNull(),
+  perDay: boolean('per_day').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
 
 // ========================
 // Relations
@@ -133,16 +168,19 @@ export const userRolesRelations = relations(userRolesModel, ({ one }) => ({
   }),
 }))
 
-export const classSectionRelations = relations(classSectionsModel, ({ one }) => ( {
-  class: one(classesModel, {
-    fields: [classSectionsModel.classId],
-    references: [classesModel.classId],
-  }),
-  section: one(sectionsModel, {
-    fields: [classSectionsModel.sectionId],
-    references: [sectionsModel.sectionId],
-  }),
-}))
+export const classSectionRelations = relations(
+  classSectionsModel,
+  ({ one }) => ({
+    class: one(classesModel, {
+      fields: [classSectionsModel.classId],
+      references: [classesModel.classId],
+    }),
+    section: one(sectionsModel, {
+      fields: [classSectionsModel.sectionId],
+      references: [sectionsModel.sectionId],
+    }),
+  })
+)
 
 export type User = typeof userModel.$inferSelect
 export type NewUser = typeof userModel.$inferInsert
@@ -160,3 +198,9 @@ export type Section = typeof sectionsModel.$inferSelect
 export type NewSection = typeof sectionsModel.$inferInsert
 export type ClassSection = typeof classSectionsModel.$inferSelect
 export type NewClassSection = typeof classSectionsModel.$inferInsert
+export type FeesGroup = typeof feesGroupModel.$inferSelect
+export type NewFeesGroup = typeof feesGroupModel.$inferInsert
+export type FeesType = typeof feesTypeModel.$inferSelect
+export type NewFeesType = typeof feesTypeModel.$inferInsert
+export type FeesMaster = typeof feesMasterModel.$inferSelect
+export type NewFeesMaster = typeof feesMasterModel.$inferInsert
