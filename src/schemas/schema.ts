@@ -58,7 +58,40 @@ export const userRolesModel = mysqlTable('user_roles', {
 // ========================
 // Business Domain Tables
 // ========================
+export const classesModel = mysqlTable("classes", {
+  classId: int("class_id").primaryKey().autoincrement(),
+  className: varchar("class_name", { length: 50 }).notNull(),
+  classCode: varchar("class_code", { length: 20 }).unique(),
+  description: varchar("description", { length: 255 }),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").onUpdateNow(),
+});
 
+export const sectionsModel = mysqlTable("sections", {
+  sectionId: int("section_id").primaryKey().autoincrement(),
+  sectionName: varchar("section_name", { length: 50 }).notNull(),
+  sectionCode: varchar("section_code", { length: 20 }),
+  description: varchar("description", { length: 255 }),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").onUpdateNow(),
+});
+
+export const classSectionsModel = mysqlTable("class_sections", {
+  classSectionId: int("class_section_id").primaryKey().autoincrement(),
+  classId: int("class_id").references(() => classesModel.classId, {
+    onDelete: 'set null',
+  }),
+  sectionId: int("section_id").references(() => sectionsModel.sectionId, {
+    onDelete: 'set null',
+  }),
+  roomNo: varchar("room_no", { length: 20 }),
+  classTeacherId: int("class_teacher_id"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").onUpdateNow(),
+});
 
 
 // ========================
@@ -100,7 +133,16 @@ export const userRolesRelations = relations(userRolesModel, ({ one }) => ({
   }),
 }))
 
-
+export const classSectionRelations = relations(classSectionsModel, ({ one }) => ( {
+  class: one(classesModel, {
+    fields: [classSectionsModel.classId],
+    references: [classesModel.classId],
+  }),
+  section: one(sectionsModel, {
+    fields: [classSectionsModel.sectionId],
+    references: [sectionsModel.sectionId],
+  }),
+}))
 
 export type User = typeof userModel.$inferSelect
 export type NewUser = typeof userModel.$inferInsert
@@ -110,3 +152,11 @@ export type Permission = typeof permissionsModel.$inferSelect
 export type NewPermission = typeof permissionsModel.$inferInsert
 export type UserRole = typeof userRolesModel.$inferSelect
 export type NewUserRole = typeof userRolesModel.$inferInsert
+export type RolePermission = typeof rolePermissionsModel.$inferSelect
+export type NewRolePermission = typeof rolePermissionsModel.$inferInsert
+export type Classes = typeof classesModel.$inferSelect
+export type NewClasses = typeof classesModel.$inferInsert
+export type Section = typeof sectionsModel.$inferSelect
+export type NewSection = typeof sectionsModel.$inferInsert
+export type ClassSection = typeof classSectionsModel.$inferSelect
+export type NewClassSection = typeof classSectionsModel.$inferInsert
