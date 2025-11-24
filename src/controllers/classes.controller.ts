@@ -4,6 +4,7 @@ import { classesModel } from '../schemas'
 import { requirePermission } from '../services/utils/jwt.utils'
 import {
   createClasses,
+  deleteClassesService,
   editClasses,
   getAllClasses,
   getClassesById,
@@ -17,9 +18,8 @@ const createClassesSchema = z.object({
     createdAt: true,
     updatedAt: true,
   }),
-  sectionIds: z.array(z.number()).nonempty("At least one section is required"),
-});
-
+  sectionIds: z.array(z.number()).nonempty('At least one section is required'),
+})
 
 const editClassesSchema = createClassesSchema.partial()
 
@@ -30,23 +30,22 @@ export const createClassesController = async (
 ) => {
   try {
     // Validate incoming data
-    const { classData, sectionIds } = createClassesSchema.parse(req.body);
+    const { classData, sectionIds } = createClassesSchema.parse(req.body)
 
     // Call service
     const newClass = await createClasses({
       classData,
       sectionIds,
-    });
+    })
 
     res.status(201).json({
       status: 'success',
       data: newClass,
-    });
+    })
   } catch (error) {
-    next(error);
+    next(error)
   }
-};
-
+}
 
 export const getAllClassessController = async (
   req: Request,
@@ -85,12 +84,50 @@ export const editClassesController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'edit_account_head')
-    const id = Number(req.params.id)
-    const classesData = editClassesSchema.parse(req.body)
-    const classes = await editClasses(id, classesData)
+    // requirePermission(req, 'edit_account_head')
 
-    res.status(200).json(classes)
+    const classId = Number(req.params.id)
+
+    // Validate input
+    const { classData, sectionIds } = editClassesSchema.parse(req.body)
+
+    // Prepare payload for the service
+    if (!classData || !sectionIds) {
+      throw new Error('classData and sectionIds are required')
+    }
+    const payload = {
+      classData,
+      sectionIds,
+    }
+
+    const result = await editClasses(classId, payload)
+
+    res.status(200).json({
+      message: 'Class updated successfully',
+      data: result,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const deleteClassesController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const classId = Number(req.params.id)
+    if (!classId) {
+      res.status(400).json({ message: 'Invalid class ID' })
+    }
+
+    const result = await deleteClassesService(classId)
+
+    res.status(200).json({
+      message: 'Class deleted successfully',
+      data: result, // { deletedClassId: 1 }
+    })
   } catch (error) {
     next(error)
   }

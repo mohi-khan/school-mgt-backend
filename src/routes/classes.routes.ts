@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   createClassesController,
+  deleteClassesController,
   editClassesController,
   getAllClassessController,
   getClassesController,
@@ -12,6 +13,7 @@ const router = Router();
 router.post("/create", authenticateUser,  createClassesController);
 router.get("/getAll", authenticateUser,  getAllClassessController);
 router.get("/getById/:id", authenticateUser, getClassesController);
-router.put("/edit/:id", authenticateUser, editClassesController);
+router.patch("/edit/:id", authenticateUser, editClassesController);
+router.delete("/delete/:id", authenticateUser, deleteClassesController);
 
 export default router;

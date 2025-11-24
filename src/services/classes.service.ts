@@ -74,6 +74,7 @@ export const getAllClasses = async () => {
 
     return {
       classData: {
+        classId: cls.classId,
         className: cls.className,
         classCode: cls.classCode,
         description: cls.description,
@@ -104,16 +105,59 @@ export const getClassesById = async (classId: number) => {
 // Update
 export const editClasses = async (
   classId: number,
-  classesData: Partial<NewClasses>
-) => {
-  const [updatedClasses] = await db
-    .update(classesModel)
-    .set(classesData)
-    .where(eq(classesModel.classId, classId))
-
-  if (!updatedClasses) {
-    throw BadRequestError('Cloth classes not found')
+  data: {
+    classData: Partial<NewClasses>
+    sectionIds: number[]
   }
+) => {
+  const { classData, sectionIds } = data
 
-  return updatedClasses
+  return await db.transaction(async (tx) => {
+    // 1️⃣ Update classes table
+    const [updated] = await tx
+      .update(classesModel)
+      .set({
+        ...classData,
+        updatedAt: new Date(),
+      })
+      .where(eq(classesModel.classId, classId))
+
+    if (!updated) {
+      throw BadRequestError('Class not found')
+    }
+
+    // 2️⃣ Delete old section relations
+    await tx
+      .delete(classSectionsModel)
+      .where(eq(classSectionsModel.classId, classId))
+
+    // 3️⃣ Insert new section relations
+    if (sectionIds && sectionIds.length > 0) {
+      const entries = sectionIds.map((sectionId) => ({
+        classId,
+        sectionId,
+        createdAt: new Date(),
+      }))
+
+      await tx.insert(classSectionsModel).values(entries)
+    }
+
+    return {
+      message: 'Class updated successfully',
+      classId,
+    }
+  })
 }
+
+export const deleteClassesService = async (classId: number) => {
+  return await db.transaction(async (tx) => {
+    // Delete related classSections first
+    await tx.delete(classSectionsModel).where(eq(classSectionsModel.classId, classId));
+
+    // Delete the class itself
+    await tx.delete(classesModel).where(eq(classesModel.classId, classId));
+
+    // Return the classId to indicate success
+    return { deletedClassId: classId };
+  });
+};
