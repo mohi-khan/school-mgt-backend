@@ -4,6 +4,7 @@ import { feesGroupModel } from '../schemas'
 import { requirePermission } from '../services/utils/jwt.utils'
 import {
   createFeesGroup,
+  deleteFeesGroup,
   editFeesGroup,
   getAllFeesGroups,
   getFeesGroupById,
@@ -73,7 +74,7 @@ export const editFeesGroupController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'edit_account_head')
+    // requirePermission(req, 'edit_account_head')
     const id = Number(req.params.id)
     const feesGroupData = editFeesGroupSchema.parse(req.body)
     const feesGroup = await editFeesGroup(id, feesGroupData)
@@ -83,3 +84,21 @@ export const editFeesGroupController = async (
     next(error)
   }
 }
+
+export const deleteFeesGroupController = async (req: Request, res: Response) => {
+  try {
+    const feesGroupId = Number(req.params.id);
+
+    const result = await deleteFeesGroup(feesGroupId);
+
+    res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message || "Something went wrong",
+    });
+  }
+};

@@ -55,3 +55,11 @@ export const editFeesType = async (
 
   return updatedFeesType
 }
+
+// Delete
+export const deleteFeesType = async (feesTypeId: number) => {
+  const result = await db
+    .delete(feesTypeModel)
+    .where(eq(feesTypeModel.feesTypeId, feesTypeId));
+  return { message: "Fees Type deleted successfully" };
+};

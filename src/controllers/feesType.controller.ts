@@ -4,6 +4,7 @@ import { feesTypeModel } from '../schemas'
 import { requirePermission } from '../services/utils/jwt.utils'
 import {
   createFeesType,
+  deleteFeesType,
   editFeesType,
   getAllFeesTypes,
   getFeesTypeById,
@@ -73,7 +74,7 @@ export const editFeesTypeController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'edit_account_head')
+    // requirePermission(req, 'edit_account_head')
     const id = Number(req.params.id)
     const feesTypeData = editFeesTypeSchema.parse(req.body)
     const feesType = await editFeesType(id, feesTypeData)
@@ -83,3 +84,21 @@ export const editFeesTypeController = async (
     next(error)
   }
 }
+
+export const deleteFeesTypeController = async (req: Request, res: Response) => {
+  try {
+    const feesTypeId = Number(req.params.id);
+
+    const result = await deleteFeesType(feesTypeId);
+
+    res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message || "Something went wrong",
+    });
+  }
+};

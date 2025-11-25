@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   createFeesGroupController,
+  deleteFeesGroupController,
   editFeesGroupController,
   getAllFeesGroupsController,
   getFeesGroupController,
@@ -12,6 +13,7 @@ const router = Router();
 router.post("/create", authenticateUser,  createFeesGroupController);
 router.get("/getAll", authenticateUser,  getAllFeesGroupsController);
 router.get("/getById/:id", authenticateUser, getFeesGroupController);
-router.put("/edit/:id", authenticateUser, editFeesGroupController);
+router.patch("/edit/:id", authenticateUser, editFeesGroupController);
+router.delete("/delete/:id", authenticateUser, deleteFeesGroupController);
 
 export default router;
