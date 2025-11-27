@@ -112,15 +112,22 @@ export const feesTypeModel = mysqlTable('fees_types', {
 
 export const feesMasterModel = mysqlTable('fees_master', {
   feesMasterId: int('fees_master_id').primaryKey().autoincrement(),
-  feesGroupId: int('fees_group_id').references(() => feesGroupModel.feesGroupId, {
-    onDelete: 'set null',
-  }),
+  feesGroupId: int('fees_group_id').references(
+    () => feesGroupModel.feesGroupId,
+    {
+      onDelete: 'set null',
+    }
+  ),
   feesTypeId: int('fees_type_id').references(() => feesTypeModel.feesTypeId, {
     onDelete: 'set null',
   }),
   dueDate: date('due_date').notNull(),
   amount: double('amount').notNull(),
-  fineType: mysqlEnum('fine_type', ['none', 'percentage', 'fixed amount']).notNull(),
+  fineType: mysqlEnum('fine_type', [
+    'none',
+    'percentage',
+    'fixed amount',
+  ]).notNull(),
   percentageFineAmount: double('percentage_fine_amount'),
   fixedFineAmount: double('fixed_fine_amount'),
   perDay: boolean('per_day').default(false),
@@ -128,7 +135,62 @@ export const feesMasterModel = mysqlTable('fees_master', {
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
 
+export const studentModel = mysqlTable('student', {
+  studentId: int('student_id').primaryKey().autoincrement(),
+  admissionNo: double('admission_no').notNull().unique(),
+  rollNo: double('roll_no').notNull().unique(),
+  classId: int('class_id').references(() => classesModel.classId, {
+    onDelete: 'set null',
+  }),
+  sectionId: int('section_id').references(() => sectionsModel.sectionId, {
+    onDelete: 'set null',
+  }),
+  firstName: varchar('first_name', { length: 50 }).notNull(),
+  lastName: varchar('last_name', { length: 50 }).notNull(),
+  gender: mysqlEnum('gender', ['male', 'female']).notNull(),
+  dateOfBirth: date('date_of_birth').notNull(),
+  religion: varchar('religion', { length: 50 }),
+  bloodGroup: mysqlEnum('blood_group', [
+    'O+',
+    'A+',
+    'B+',
+    'AB+',
+    'O-',
+    'A-',
+    'B-',
+    'AB-',
+  ]),
+  height: double('height'),
+  weight: double('weight'),
+  address: text('address'),
+  phoneNumber: varchar('phone_number', { length: 15 }).notNull().unique(),
+  email: varchar('email', { length: 100 }).notNull().unique(),
+  admissionDate: date('admission_date').notNull(),
+  photoUrl: varchar('photo_url', { length: 255 }),
+  isActive: boolean('is_active').default(true),
+  fatherName: varchar('father_name', { length: 100 }),
+  fatherPhone: varchar('father_phone', { length: 15 }).notNull().unique(),
+  fatherEmail: varchar('father_email', { length: 100 }).notNull().unique(),
+  fatherOccupation: varchar('father_occupation', { length: 100 }),
+  fatherPhotoUrl: varchar('father_photo_url', { length: 255 }),
+  motherName: varchar('mother_name', { length: 100 }),
+  motherPhone: varchar('mother_phone', { length: 15 }).notNull().unique(),
+  motherEmail: varchar('mother_email', { length: 100 }).notNull().unique(),
+  motherOccupation: varchar('mother_occupation', { length: 100 }),
+  motherPhotoUrl: varchar('mother_photo_url', { length: 255 }),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
 
+export const studentFeesModel = mysqlTable('student_fees', {
+  studentFeesId: int('student_fees_id').primaryKey().autoincrement(),
+  studentId: int('student_-id').references(() => studentModel.studentId, {
+    onDelete: 'set null',
+  }),
+  feesMasterId: int('fees_master_id').references(() => feesMasterModel.feesMasterId, {
+    onDelete: 'set null',
+  }),
+})
 
 // ========================
 // Relations
