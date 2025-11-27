@@ -24,7 +24,7 @@ export const createFeesGroupController = async (
   next: NextFunction
 ) => {
   try {
-    //requirePermission(req, 'create_fees_group')
+    requirePermission(req, 'create_fees_group')
     const feesGroupData = createFeesGroupSchema.parse(req.body)
     const feesGroup = await createFeesGroup(feesGroupData)
 
@@ -43,7 +43,7 @@ export const getAllFeesGroupsController = async (
   next: NextFunction
 ) => {
   try {
-    //requirePermission(req, 'view_fees_group')
+    requirePermission(req, 'view_fees_group')
     const feesGroups = await getAllFeesGroups()
 
     res.status(200).json(feesGroups)
@@ -58,7 +58,7 @@ export const getFeesGroupController = async (
   next: NextFunction
 ) => {
   try {
-    //requirePermission(req, 'view_fees_group')
+    requirePermission(req, 'view_fees_group')
     const id = Number(req.params.id)
     const feesGroup = await getFeesGroupById(id)
 
@@ -74,7 +74,7 @@ export const editFeesGroupController = async (
   next: NextFunction
 ) => {
   try {
-    //requirePermission(req, 'edit_fees_group')
+    requirePermission(req, 'edit_fees_group')
     const id = Number(req.params.id)
     const feesGroupData = editFeesGroupSchema.parse(req.body)
     const feesGroup = await editFeesGroup(id, feesGroupData)
@@ -87,7 +87,7 @@ export const editFeesGroupController = async (
 
 export const deleteFeesGroupController = async (req: Request, res: Response) => {
   try {
-    //requirePermission(req, 'delete_fees_group')
+    requirePermission(req, 'delete_fees_group')
     const feesGroupId = Number(req.params.id);
 
     const result = await deleteFeesGroup(feesGroupId);

@@ -123,11 +123,12 @@ export const feesMasterModel = mysqlTable('fees_master', {
   fineType: mysqlEnum('fine_type', ['none', 'percentage', 'fixed amount']).notNull(),
   percentageFineAmount: double('percentage_fine_amount'),
   fixedFineAmount: double('fixed_fine_amount'),
-  fineAmount: double('fine_amount').notNull(),
   perDay: boolean('per_day').default(false),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
+
+
 
 // ========================
 // Relations

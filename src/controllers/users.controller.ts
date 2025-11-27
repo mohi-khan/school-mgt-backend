@@ -7,7 +7,7 @@ export const getUserList = async (
   next: NextFunction
 ) => {
   try {
-    //requirePermission(req, 'view_user')
+    requirePermission(req, 'view_user')
     const users = await getUsers()
     res.json(users)
   } catch (err) {

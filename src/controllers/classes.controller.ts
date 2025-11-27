@@ -29,7 +29,7 @@ export const createClassesController = async (
   next: NextFunction
 ) => {
   try {
-    //requirePermission(req, 'create_class')
+    requirePermission(req, 'create_class')
     const { classData, sectionIds } = createClassesSchema.parse(req.body)
 
     // Call service
@@ -53,7 +53,7 @@ export const getAllClassessController = async (
   next: NextFunction
 ) => {
   try {
-    //requirePermission(req, 'view_class')
+    requirePermission(req, 'view_class')
     const classess = await getAllClasses()
 
     res.status(200).json(classess)
@@ -68,7 +68,7 @@ export const getClassesController = async (
   next: NextFunction
 ) => {
   try {
-    //requirePermission(req, 'view_class')
+    requirePermission(req, 'view_class')
     const id = Number(req.params.id)
     const classes = await getClassesById(id)
 
@@ -84,7 +84,7 @@ export const editClassesController = async (
   next: NextFunction
 ) => {
   try {
-    //requirePermission(req, 'edit_class')
+    requirePermission(req, 'edit_class')
 
     const classId = Number(req.params.id)
 
@@ -117,7 +117,7 @@ export const deleteClassesController = async (
   next: NextFunction
 ) => {
   try {
-    //requirePermission(req, 'delete_class')
+    requirePermission(req, 'delete_class')
     const classId = Number(req.params.id)
     if (!classId) {
       res.status(400).json({ message: 'Invalid class ID' })

@@ -32,7 +32,7 @@ export const createFeesMasterController = async (
   next: NextFunction
 ) => {
   try {
-    //requirePermission(req, 'create_fees_master')
+    requirePermission(req, 'create_fees_master')
     const feesMasterData = createFeesMasterSchema.parse(req.body)
     const feesMaster = await createFeesMaster(feesMasterData)
 
@@ -51,7 +51,7 @@ export const getAllFeesMastersController = async (
   next: NextFunction
 ) => {
   try {
-    //requirePermission(req, 'view_fees_master')
+    requirePermission(req, 'view_fees_master')
     const feesMasters = await getAllFeesMasters()
 
     res.status(200).json(feesMasters)
@@ -66,7 +66,7 @@ export const getFeesMasterController = async (
   next: NextFunction
 ) => {
   try {
-    //requirePermission(req, 'view_fess_master')
+    requirePermission(req, 'view_fess_master')
     const id = Number(req.params.id)
     const feesMaster = await getFeesMasterById(id)
 
@@ -82,7 +82,7 @@ export const editFeesMasterController = async (
   next: NextFunction
 ) => {
   try {
-    //requirePermission(req, 'edit_fees_master')
+    requirePermission(req, 'edit_fees_master')
     const id = Number(req.params.id)
     const feesMasterData = editFeesMasterSchema.parse(req.body)
     const feesMaster = await editFeesMaster(id, feesMasterData)
@@ -95,7 +95,7 @@ export const editFeesMasterController = async (
 
 export const deleteFeesMasterController = async (req: Request, res: Response) => {
   try {
-    //requirePermission(req, 'delete_fees_master')
+    requirePermission(req, 'delete_fees_master')
     const feesMasterId = Number(req.params.id);
 
     const result = await deleteFeesMaster(feesMasterId);

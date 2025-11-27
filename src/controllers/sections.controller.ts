@@ -8,7 +8,7 @@ export const getAllSectionssController = async (
   next: NextFunction
 ) => {
   try {
-    //requirePermission(req, 'view_section')
+    requirePermission(req, 'view_section')
     const accountHeads = await getAllSectionss()
 
     res.status(200).json(accountHeads)

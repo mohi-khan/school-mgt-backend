@@ -24,7 +24,7 @@ export const createFeesTypeController = async (
   next: NextFunction
 ) => {
   try {
-    //requirePermission(req, 'create_fees_type')
+    requirePermission(req, 'create_fees_type')
     const feesTypeData = createFeesTypeSchema.parse(req.body)
     const feesType = await createFeesType(feesTypeData)
 
@@ -43,7 +43,7 @@ export const getAllFeesTypesController = async (
   next: NextFunction
 ) => {
   try {
-    //requirePermission(req, 'view_fees_type')
+    requirePermission(req, 'view_fees_type')
     const feesTypes = await getAllFeesTypes()
 
     res.status(200).json(feesTypes)
@@ -58,7 +58,7 @@ export const getFeesTypeController = async (
   next: NextFunction
 ) => {
   try {
-    //requirePermission(req, 'view_fees_type')
+    requirePermission(req, 'view_fees_type')
     const id = Number(req.params.id)
     const feesType = await getFeesTypeById(id)
 
@@ -74,7 +74,7 @@ export const editFeesTypeController = async (
   next: NextFunction
 ) => {
   try {
-    //requirePermission(req, 'edit_fees_type')
+    requirePermission(req, 'edit_fees_type')
     const id = Number(req.params.id)
     const feesTypeData = editFeesTypeSchema.parse(req.body)
     const feesType = await editFeesType(id, feesTypeData)
@@ -87,7 +87,7 @@ export const editFeesTypeController = async (
 
 export const deleteFeesTypeController = async (req: Request, res: Response) => {
   try {
-    //requirePermission(req, 'delete_fees_type')
+    requirePermission(req, 'delete_fees_type')
     const feesTypeId = Number(req.params.id);
 
     const result = await deleteFeesType(feesTypeId);
