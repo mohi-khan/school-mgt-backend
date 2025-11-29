@@ -5,6 +5,7 @@ import ClassesRoutes from "./classes.routes";
 import feesGroupRoutes from "./feesGroup.routes";
 import feesTypeRoutes from "./feesType.routes";
 import feesMasterRoutes from "./feesMaster.routes";
+import studentsRoutes from "./students.routes";
 
 const router=Router()
 
@@ -14,5 +15,6 @@ router.use('/classes', ClassesRoutes)
 router.use('/fees-groups', feesGroupRoutes)
 router.use('/fees-types', feesTypeRoutes)
 router.use('/fees-master', feesMasterRoutes)
+router.use('/students', studentsRoutes)
 
 export default router;

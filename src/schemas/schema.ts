@@ -135,7 +135,7 @@ export const feesMasterModel = mysqlTable('fees_master', {
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
 
-export const studentModel = mysqlTable('student', {
+export const studentsModel = mysqlTable('students', {
   studentId: int('student_id').primaryKey().autoincrement(),
   admissionNo: double('admission_no').notNull().unique(),
   rollNo: double('roll_no').notNull().unique(),
@@ -184,12 +184,15 @@ export const studentModel = mysqlTable('student', {
 
 export const studentFeesModel = mysqlTable('student_fees', {
   studentFeesId: int('student_fees_id').primaryKey().autoincrement(),
-  studentId: int('student_-id').references(() => studentModel.studentId, {
+  studentId: int('student_id').references(() => studentsModel.studentId, {
     onDelete: 'set null',
   }),
-  feesMasterId: int('fees_master_id').references(() => feesMasterModel.feesMasterId, {
-    onDelete: 'set null',
-  }),
+  feesMasterId: int('fees_master_id').references(
+    () => feesMasterModel.feesMasterId,
+    {
+      onDelete: 'set null',
+    }
+  ),
 })
 
 // ========================
@@ -245,6 +248,40 @@ export const classSectionRelations = relations(
   })
 )
 
+export const feesMasterRelations = relations(feesMasterModel, ({ one }) => ({
+  feesGroup: one(feesGroupModel, {
+    fields: [feesMasterModel.feesGroupId],
+    references: [feesGroupModel.feesGroupId],
+  }),
+  feesType: one(feesTypeModel, {
+    fields: [feesMasterModel.feesTypeId],
+    references: [feesTypeModel.feesTypeId],
+  }),
+}))
+
+export const studentRelations = relations(studentsModel, ({ one, many }) => ({
+  class: one(classesModel, {
+    fields: [studentsModel.classId],
+    references: [classesModel.classId],
+  }),
+  section: one(sectionsModel, {
+    fields: [studentsModel.sectionId],
+    references: [sectionsModel.sectionId],
+  }),
+  studentFees: many(studentFeesModel), // no fields/references needed for `many`
+}))
+
+export const studentFeesRelations = relations(studentFeesModel, ({ one }) => ({
+  student: one(studentsModel, {
+    fields: [studentFeesModel.studentId],
+    references: [studentsModel.studentId],
+  }),
+  feesMaster: one(feesMasterModel, {
+    fields: [studentFeesModel.feesMasterId],
+    references: [feesMasterModel.feesMasterId],
+  }),
+}))
+
 export type User = typeof userModel.$inferSelect
 export type NewUser = typeof userModel.$inferInsert
 export type Role = typeof roleModel.$inferSelect
@@ -267,3 +304,7 @@ export type FeesType = typeof feesTypeModel.$inferSelect
 export type NewFeesType = typeof feesTypeModel.$inferInsert
 export type FeesMaster = typeof feesMasterModel.$inferSelect
 export type NewFeesMaster = typeof feesMasterModel.$inferInsert
+export type Students = typeof studentsModel.$inferSelect
+export type NewStudents = typeof studentsModel.$inferInsert
+export type StudentFees = typeof studentFeesModel.$inferSelect
+export type NewStudentFees = typeof studentFeesModel.$inferInsert
