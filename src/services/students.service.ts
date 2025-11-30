@@ -1,6 +1,11 @@
-import { eq } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 import { db } from '../config/database'
-import { studentFeesModel, studentsModel } from '../schemas'
+import {
+  classesModel,
+  sectionsModel,
+  studentFeesModel,
+  studentsModel,
+} from '../schemas'
 
 export type StudentDetailsType = {
   admissionNo: number
@@ -125,4 +130,133 @@ export const createStudent = async (data: {
 
     return student
   })
+}
+
+export async function getAllStudents() {
+  // 1️⃣ Fetch student + class + section info
+  const students = await db
+    .select({
+      studentId: studentsModel.studentId,
+      admissionNo: studentsModel.admissionNo,
+      rollNo: studentsModel.rollNo,
+      classId: studentsModel.classId,
+      sectionId: studentsModel.sectionId,
+      firstName: studentsModel.firstName,
+      lastName: studentsModel.lastName,
+      gender: studentsModel.gender,
+      dateOfBirth: studentsModel.dateOfBirth,
+      religion: studentsModel.religion,
+      bloodGroup: studentsModel.bloodGroup,
+      height: studentsModel.height,
+      weight: studentsModel.weight,
+      address: studentsModel.address,
+      phoneNumber: studentsModel.phoneNumber,
+      email: studentsModel.email,
+      admissionDate: studentsModel.admissionDate,
+      photoUrl: studentsModel.photoUrl,
+      isActive: studentsModel.isActive,
+      fatherName: studentsModel.fatherName,
+      fatherPhone: studentsModel.fatherPhone,
+      fatherEmail: studentsModel.fatherEmail,
+      fatherOccupation: studentsModel.fatherOccupation,
+      fatherPhotoUrl: studentsModel.fatherPhotoUrl,
+      motherName: studentsModel.motherName,
+      motherPhone: studentsModel.motherPhone,
+      motherEmail: studentsModel.motherEmail,
+      motherOccupation: studentsModel.motherOccupation,
+      motherPhotoUrl: studentsModel.motherPhotoUrl,
+      createdAt: studentsModel.createdAt,
+      updatedAt: studentsModel.updatedAt,
+      className: classesModel.className,
+      sectionName: sectionsModel.sectionName,
+    })
+    .from(studentsModel)
+    .leftJoin(classesModel, eq(studentsModel.classId, classesModel.classId))
+    .leftJoin(
+      sectionsModel,
+      eq(studentsModel.sectionId, sectionsModel.sectionId)
+    )
+
+  if (students.length === 0) return []
+
+  const studentIds = students.map((s) => s.studentId)
+
+  // 2️⃣ Fetch all student fees
+  const fees = await db
+    .select()
+    .from(studentFeesModel)
+    .where(inArray(studentFeesModel.studentId, studentIds))
+
+  // 3️⃣ Group fees by studentId
+  const feeMap: Record<number, any[]> = {}
+  for (const f of fees) {
+    if (!feeMap[f.studentId!]) feeMap[f.studentId!] = []
+    feeMap[f.studentId!].push(f)
+  }
+
+  // 4️⃣ Merge students + fees
+  return students.map((st) => ({
+    studentDetails: st,
+    studentFees: feeMap[st.studentId] || [],
+  }))
+}
+
+export async function getStudentById(studentId: number) {
+  // 1️⃣ Fetch single student
+  const student = await db
+    .select({
+      studentId: studentsModel.studentId,
+      admissionNo: studentsModel.admissionNo,
+      rollNo: studentsModel.rollNo,
+      classId: studentsModel.classId,
+      sectionId: studentsModel.sectionId,
+      firstName: studentsModel.firstName,
+      lastName: studentsModel.lastName,
+      gender: studentsModel.gender,
+      dateOfBirth: studentsModel.dateOfBirth,
+      religion: studentsModel.religion,
+      bloodGroup: studentsModel.bloodGroup,
+      height: studentsModel.height,
+      weight: studentsModel.weight,
+      address: studentsModel.address,
+      phoneNumber: studentsModel.phoneNumber,
+      email: studentsModel.email,
+      admissionDate: studentsModel.admissionDate,
+      photoUrl: studentsModel.photoUrl,
+      isActive: studentsModel.isActive,
+      fatherName: studentsModel.fatherName,
+      fatherPhone: studentsModel.fatherPhone,
+      fatherEmail: studentsModel.fatherEmail,
+      fatherOccupation: studentsModel.fatherOccupation,
+      fatherPhotoUrl: studentsModel.fatherPhotoUrl,
+      motherName: studentsModel.motherName,
+      motherPhone: studentsModel.motherPhone,
+      motherEmail: studentsModel.motherEmail,
+      motherOccupation: studentsModel.motherOccupation,
+      motherPhotoUrl: studentsModel.motherPhotoUrl,
+      createdAt: studentsModel.createdAt,
+      updatedAt: studentsModel.updatedAt,
+      className: classesModel.className,
+      sectionName: sectionsModel.sectionName,
+    })
+    .from(studentsModel)
+    .leftJoin(classesModel, eq(studentsModel.classId, classesModel.classId))
+    .leftJoin(
+      sectionsModel,
+      eq(studentsModel.sectionId, sectionsModel.sectionId)
+    )
+    .where(eq(studentsModel.studentId, studentId))
+
+  if (student.length === 0) return null
+
+  // 2️⃣ Fetch student fees
+  const fees = await db
+    .select()
+    .from(studentFeesModel)
+    .where(eq(studentFeesModel.studentId, studentId))
+
+  return {
+    studentDetails: student[0],
+    studentFees: fees,
+  }
 }

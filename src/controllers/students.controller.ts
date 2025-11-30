@@ -1,10 +1,10 @@
 import { Request, Response } from 'express'
-import { createStudent } from '../services/students.service'
+import { createStudent, getAllStudents, getStudentById } from '../services/students.service'
+import { requirePermission } from '../services/utils/jwt.utils'
 
-// student.controller.ts
-// student.controller.ts
 export const createStudentController = async (req: Request, res: Response) => {
   try {
+    requirePermission(req, 'create_student')
     console.log("📥 Received files:", req.files)
     console.log("📥 Received body:", req.body)
 
@@ -54,3 +54,30 @@ export const createStudentController = async (req: Request, res: Response) => {
     }
   }
 }
+
+export const getAllStudentsController = async (req: Request, res: Response) => {
+  try {
+    requirePermission(req, 'view_student');
+    const data = await getAllStudents();
+    res.json(data);
+  } catch (error) {
+    console.error("Get All Students Error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const getStudentByIdController = async (req: Request, res: Response) => {
+  try {
+    requirePermission(req, 'view_student');
+    const studentId = Number(req.params.id);
+    const data = await getStudentById(studentId);
+
+    if (!data)
+      res.status(404).json({ success: false, message: "Student not found" });
+
+    res.json(data);
+  } catch (error) {
+    console.error("Get Student By ID Error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
