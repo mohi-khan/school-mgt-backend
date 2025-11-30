@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { createStudent, getAllStudents, getStudentById } from '../services/students.service'
+import { createStudent, deleteStudent, getAllStudents, getStudentById } from '../services/students.service'
 import { requirePermission } from '../services/utils/jwt.utils'
 
 export const createStudentController = async (req: Request, res: Response) => {
@@ -81,3 +81,23 @@ export const getStudentByIdController = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+export const deleteStudentController = async (req: any, res: any) => {
+  try {
+    const { id } = req.params
+
+    if (!id) {
+     res.status(400).json({ message: 'id is required' })
+    }
+
+    if (isNaN(id)) {
+     res.status(400).json({ message: 'Invalid id' })
+    }
+
+    const result = await deleteStudent(id)
+
+   res.status(200).json(result)
+  } catch (error: any) {
+   res.status(500).json({ message: error.message })
+  }
+}

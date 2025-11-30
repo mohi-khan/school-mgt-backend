@@ -260,3 +260,32 @@ export async function getStudentById(studentId: number) {
     studentFees: fees,
   }
 }
+
+export const deleteStudent = async (studentId: number) => {
+  return await db.transaction(async (tx) => {
+    if (!studentId) {
+      throw new Error('studentId is required')
+    }
+
+    // Check if student exists before deletion
+    const student = await tx.query.studentsModel.findFirst({
+      where: eq(studentsModel.studentId, studentId),
+      with: { studentFees: true },
+    })
+
+    if (!student) {
+      throw new Error('Student not found')
+    }
+
+    // Delete fees first (because of foreign key constraints)
+    await tx.delete(studentFeesModel).where(eq(studentFeesModel.studentId, studentId))
+
+    // Delete student
+    await tx.delete(studentsModel).where(eq(studentsModel.studentId, studentId))
+
+    return {
+      message: 'Student deleted successfully',
+      deletedStudent: student,
+    }
+  })
+}
