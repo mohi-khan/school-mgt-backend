@@ -26,6 +26,7 @@
     "express": "^5.1.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
     "mysql2": "^3.14.0",
     "prettier": "^3.6.2",
     "zod": "^3.24.2"
@@ -36,6 +37,7 @@
     "@types/express": "^5.0.1",
     "@types/helmet": "^0.0.48",
     "@types/jsonwebtoken": "^9.0.9",
+    "@types/multer": "^2.0.0",
     "@types/node": "^22.14.1",
     "drizzle-kit": "^0.30.6",
     "ts-node-dev": "^2.0.0",
