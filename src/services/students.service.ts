@@ -52,12 +52,21 @@ export type CreateStudentWithFiles = {
   photoUrls?: Express.Multer.File[]
 }
 
+// students.service.ts
 export const createStudent = async (data: {
   studentDetails: any
   studentFees: { studentId: number | null; feesMasterId: number }[]
 }) => {
   return await db.transaction(async (tx) => {
-    // Insert student
+    // Validate required fields
+    if (!data.studentDetails.admissionNo) {
+      throw new Error('admissionNo is required')
+    }
+    if (!data.studentDetails.rollNo) {
+      throw new Error('rollNo is required')
+    }
+
+    // Insert student with explicit field mapping
     const [inserted] = await tx
       .insert(studentsModel)
       .values({
@@ -68,7 +77,9 @@ export const createStudent = async (data: {
         firstName: data.studentDetails.firstName,
         lastName: data.studentDetails.lastName,
         gender: data.studentDetails.gender,
-        dateOfBirth: new Date(data.studentDetails.dateOfBirth),
+        dateOfBirth: data.studentDetails.dateOfBirth
+          ? new Date(data.studentDetails.dateOfBirth)
+          : new Date(), // fallback to current date if not provided
         religion: data.studentDetails.religion ?? null,
         bloodGroup: data.studentDetails.bloodGroup ?? null,
         height: data.studentDetails.height ?? null,
@@ -76,7 +87,9 @@ export const createStudent = async (data: {
         address: data.studentDetails.address ?? null,
         phoneNumber: data.studentDetails.phoneNumber,
         email: data.studentDetails.email,
-        admissionDate: new Date(data.studentDetails.admissionDate),
+        admissionDate: data.studentDetails.admissionDate
+          ? new Date(data.studentDetails.admissionDate)
+          : new Date(),
         photoUrl: data.studentDetails.photoUrl ?? null,
         isActive: data.studentDetails.isActive ?? true,
         fatherName: data.studentDetails.fatherName ?? null,
@@ -89,12 +102,6 @@ export const createStudent = async (data: {
         motherEmail: data.studentDetails.motherEmail,
         motherOccupation: data.studentDetails.motherOccupation ?? null,
         motherPhotoUrl: data.studentDetails.motherPhotoUrl ?? null,
-        createdAt: data.studentDetails.createdAt
-          ? new Date(data.studentDetails.createdAt)
-          : null,
-        updatedAt: data.studentDetails.updatedAt
-          ? new Date(data.studentDetails.updatedAt)
-          : null,
       })
       .$returningId()
 
