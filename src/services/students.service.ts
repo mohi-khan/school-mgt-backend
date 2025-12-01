@@ -2,6 +2,9 @@ import { eq, inArray } from 'drizzle-orm'
 import { db } from '../config/database'
 import {
   classesModel,
+  feesGroupModel,
+  feesMasterModel,
+  feesTypeModel,
   sectionsModel,
   studentFeesModel,
   studentsModel,
@@ -251,8 +254,30 @@ export async function getStudentById(studentId: number) {
 
   // 2️⃣ Fetch student fees
   const fees = await db
-    .select()
+    .select({
+      studentFeesId: studentFeesModel.studentFeesId,
+      studentId: studentFeesModel.studentId,
+      feesMasterId: studentFeesModel.feesMasterId,
+      feesGroup: feesMasterModel.feesGroupId,
+      feesGroupName: feesGroupModel.groupName,
+      feesType: feesMasterModel.feesTypeId,
+      feesTypeName: feesTypeModel.typeName,
+      amount: feesMasterModel.amount,
+      dueDate: feesMasterModel.dueDate,
+    })
     .from(studentFeesModel)
+    .leftJoin(
+      feesMasterModel,
+      eq(studentFeesModel.feesMasterId, feesMasterModel.feesMasterId)
+    )
+    .leftJoin(
+      feesGroupModel,
+      eq(feesMasterModel.feesGroupId, feesGroupModel.feesGroupId)
+    )
+    .leftJoin(
+      feesTypeModel,
+      eq(feesMasterModel.feesTypeId, feesTypeModel.feesTypeId)
+    )
     .where(eq(studentFeesModel.studentId, studentId))
 
   return {
@@ -278,7 +303,9 @@ export const deleteStudent = async (studentId: number) => {
     }
 
     // Delete fees first (because of foreign key constraints)
-    await tx.delete(studentFeesModel).where(eq(studentFeesModel.studentId, studentId))
+    await tx
+      .delete(studentFeesModel)
+      .where(eq(studentFeesModel.studentId, studentId))
 
     // Delete student
     await tx.delete(studentsModel).where(eq(studentsModel.studentId, studentId))
