@@ -117,15 +117,37 @@ export const createStudent = async (data: {
 
     // Insert Student Fees
     if (Array.isArray(data.studentFees) && data.studentFees.length > 0) {
-      const feesData = data.studentFees.map((f) => ({
-        studentId,
-        feesMasterId: f.feesMasterId,
-      }))
+      const feesMasterIds = data.studentFees.map((f) => f.feesMasterId)
+
+      // Fetch fees_master rows for mapping
+      const feesMasterList = await tx
+        .select({
+          id: feesMasterModel.feesMasterId,
+          amount: feesMasterModel.amount,
+        })
+        .from(feesMasterModel)
+        .where(inArray(feesMasterModel.feesMasterId, feesMasterIds))
+
+      const feesData = data.studentFees.map((f) => {
+        const fm = feesMasterList.find((x) => x.id === f.feesMasterId)
+        if (!fm) {
+          throw new Error(`Invalid feesMasterId: ${f.feesMasterId}`)
+        }
+
+        return {
+          studentId,
+          feesMasterId: f.feesMasterId,
+          amount: fm.amount,
+          paidAmount: 0,
+          remainingAmount: fm.amount,
+          status: 'Unpaid' as const,
+        }
+      })
 
       await tx.insert(studentFeesModel).values(feesData)
     }
 
-    // Fetch full student record with fees
+    // Fetch & return complete student with fees
     const student = await tx.query.studentsModel.findFirst({
       where: eq(studentsModel.studentId, studentId),
       with: { studentFees: true },
@@ -262,7 +284,10 @@ export async function getStudentById(studentId: number) {
       feesGroupName: feesGroupModel.groupName,
       feesType: feesMasterModel.feesTypeId,
       feesTypeName: feesTypeModel.typeName,
-      amount: feesMasterModel.amount,
+      amount: studentFeesModel.amount,
+      paidAmount: studentFeesModel.paidAmount,
+      remainingAmount: studentFeesModel.remainingAmount,
+      status: studentFeesModel.status,
       dueDate: feesMasterModel.dueDate,
     })
     .from(studentFeesModel)

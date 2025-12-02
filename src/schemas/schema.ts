@@ -193,6 +193,12 @@ export const studentFeesModel = mysqlTable('student_fees', {
       onDelete: 'set null',
     }
   ),
+  amount: double('amount').notNull(),
+  paidAmount: double('paid_amount'),
+  remainingAmount: double('remaining_amount'),
+  status: mysqlEnum(['Paid', 'Unpaid', 'Partial']).default('Unpaid'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
 })
 
 // ========================
