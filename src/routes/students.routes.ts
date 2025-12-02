@@ -17,6 +17,6 @@ router.post(
 );
 router.get("/getAll", authenticateUser,  getAllStudentsController);
 router.get("/getById/:id", authenticateUser, getStudentByIdController);
-router.delete("/delete/:id", authenticateUser, deleteStudentController)
+router.delete("/delete/:id", authenticateUser, deleteStudentController);
 
 export default router

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
-import { createStudent, deleteStudent, getAllStudents, getStudentById } from '../services/students.service'
 import { requirePermission } from '../services/utils/jwt.utils'
+import { createStudent, deleteStudent, getAllStudents, getStudentById } from '../services/students.service'
 
 export const createStudentController = async (req: Request, res: Response) => {
   try {
