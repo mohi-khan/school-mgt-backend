@@ -84,3 +84,24 @@ export const collectFees = async (fees: FeeInput[]) => {
 
   return results;
 };
+
+export const getStudentFeesById = async (studentId: number) => {
+  if (!studentId) {
+    throw new Error('studentId is required');
+  }
+
+  const fees = await db
+    .select({
+      studentFeesId: studentFeesModel.studentFeesId,
+      amount: studentFeesModel.amount,
+      paidAmount: studentFeesModel.paidAmount,
+      remainingAmount: studentFeesModel.remainingAmount,
+      status: studentFeesModel.status,
+      createdAt: studentFeesModel.createdAt,
+      updatedAt: studentFeesModel.updatedAt,
+    })
+    .from(studentFeesModel)
+    .where(eq(studentFeesModel.studentId, studentId));
+
+  return fees;
+};
