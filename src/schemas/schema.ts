@@ -201,6 +201,27 @@ export const studentFeesModel = mysqlTable('student_fees', {
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
 
+export const studentPaymentsModel = mysqlTable('student_payments', {
+  studentPaymentId: int('studnet_payment_id').primaryKey().autoincrement(),
+  studentFeesId: int('student_fees_id').references(
+    () => studentFeesModel.studentFeesId,
+    {
+      onDelete: 'set null',
+    }
+  ),
+  method: mysqlEnum('method', [
+    'cash',
+    'bank',
+    'bkash',
+    'nagad',
+    'rocket',
+  ]).notNull(),
+  paymentDate: date('payment_date').notNull(),
+  remarks: text('remarks'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
+
 // ========================
 // Relations
 // ========================
@@ -288,6 +309,16 @@ export const studentFeesRelations = relations(studentFeesModel, ({ one }) => ({
   }),
 }))
 
+export const studentPaymentRelations = relations(
+  studentPaymentsModel,
+  ({ one }) => ({
+    studentFees: one(studentFeesModel, {
+      fields: [studentPaymentsModel.studentFeesId],
+      references: [studentFeesModel.studentFeesId],
+    }),
+  })
+)
+
 export type User = typeof userModel.$inferSelect
 export type NewUser = typeof userModel.$inferInsert
 export type Role = typeof roleModel.$inferSelect
@@ -314,3 +345,5 @@ export type Students = typeof studentsModel.$inferSelect
 export type NewStudents = typeof studentsModel.$inferInsert
 export type StudentFees = typeof studentFeesModel.$inferSelect
 export type NewStudentFees = typeof studentFeesModel.$inferInsert
+export type StudentPayments = typeof studentPaymentsModel.$inferInsert
+export type NewStudentPayments = typeof studentPaymentsModel.$inferInsert

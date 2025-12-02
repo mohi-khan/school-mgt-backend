@@ -8,41 +8,42 @@ import {
 export const collectFeesController = async (req: Request, res: Response) => {
   try {
     requirePermission(req, 'collect_student_fees')
-    const fees = req.body
 
-    if (!Array.isArray(fees) || fees.length === 0) {
-      res
-        .status(400)
-        .json({ success: false, message: 'Fees array is required' })
+    const body = req.body
+
+    if (!body.studentFeesId) {
+      return res.status(400).json({
+        success: false,
+        message: 'studentFeesId is required',
+      })
     }
 
-    // Validate each fee object
-    for (const fee of fees) {
-      if (!fee.studentFeesId) {
-        res
-          .status(400)
-          .json({
-            success: false,
-            message: 'studentFeesId is required for each fee',
-          })
-      }
-      if (!fee.paymentType || !['Paid', 'Partial'].includes(fee.paymentType)) {
-        res
-          .status(400)
-          .json({ success: false, message: 'Invalid paymentType for each fee' })
-      }
+    if (!body.paidAmount || body.paidAmount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'paidAmount is required & must be > 0',
+      })
     }
 
-    // Call service
-    const result = await collectFees(fees)
+    if (!body.method) {
+      return res.status(400).json({
+        success: false,
+        message: 'payment method is required',
+      })
+    }
 
-    res.status(200).json({
-      success: true,
-      message: 'Fees updated successfully',
-      data: result,
-    })
+    if (!body.paymentDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'paymentDate is required',
+      })
+    }
+
+    const result = await collectFees(body)
+
+    return res.status(200).json(result)
   } catch (error: any) {
-    res.status(400).json({
+    return res.status(400).json({
       success: false,
       message: error.message || 'Something went wrong',
     })
