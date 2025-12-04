@@ -1,4 +1,4 @@
-import { eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray } from 'drizzle-orm'
 import { db } from '../config/database'
 import {
   classesModel,
@@ -117,15 +117,37 @@ export const createStudent = async (data: {
 
     // Insert Student Fees
     if (Array.isArray(data.studentFees) && data.studentFees.length > 0) {
-      const feesData = data.studentFees.map((f) => ({
-        studentId,
-        feesMasterId: f.feesMasterId,
-      }))
+      const feesMasterIds = data.studentFees.map((f) => f.feesMasterId)
+
+      // Fetch fees_master rows for mapping
+      const feesMasterList = await tx
+        .select({
+          id: feesMasterModel.feesMasterId,
+          amount: feesMasterModel.amount,
+        })
+        .from(feesMasterModel)
+        .where(inArray(feesMasterModel.feesMasterId, feesMasterIds))
+
+      const feesData = data.studentFees.map((f) => {
+        const fm = feesMasterList.find((x) => x.id === f.feesMasterId)
+        if (!fm) {
+          throw new Error(`Invalid feesMasterId: ${f.feesMasterId}`)
+        }
+
+        return {
+          studentId,
+          feesMasterId: f.feesMasterId,
+          amount: fm.amount,
+          paidAmount: 0,
+          remainingAmount: fm.amount,
+          status: 'Unpaid' as const,
+        }
+      })
 
       await tx.insert(studentFeesModel).values(feesData)
     }
 
-    // Fetch full student record with fees
+    // Fetch & return complete student with fees
     const student = await tx.query.studentsModel.findFirst({
       where: eq(studentsModel.studentId, studentId),
       with: { studentFees: true },
@@ -135,9 +157,16 @@ export const createStudent = async (data: {
   })
 }
 
-export async function getAllStudents() {
-  // 1️⃣ Fetch student + class + section info
-  const students = await db
+export async function getAllStudents(
+  classId?: number | null,
+  sectionId?: number | null
+) {
+  const conditions: any[] = []
+
+  if (classId) conditions.push(eq(studentsModel.classId, classId))
+  if (sectionId) conditions.push(eq(studentsModel.sectionId, sectionId))
+
+  const baseQuery = db
     .select({
       studentId: studentsModel.studentId,
       admissionNo: studentsModel.admissionNo,
@@ -180,24 +209,27 @@ export async function getAllStudents() {
       eq(studentsModel.sectionId, sectionsModel.sectionId)
     )
 
+  // Apply WHERE only when filters exist
+  const query =
+    conditions.length > 0 ? baseQuery.where(and(...conditions)) : baseQuery
+
+  const students = await query
+
   if (students.length === 0) return []
 
   const studentIds = students.map((s) => s.studentId)
 
-  // 2️⃣ Fetch all student fees
   const fees = await db
     .select()
     .from(studentFeesModel)
     .where(inArray(studentFeesModel.studentId, studentIds))
 
-  // 3️⃣ Group fees by studentId
   const feeMap: Record<number, any[]> = {}
   for (const f of fees) {
     if (!feeMap[f.studentId!]) feeMap[f.studentId!] = []
     feeMap[f.studentId!].push(f)
   }
 
-  // 4️⃣ Merge students + fees
   return students.map((st) => ({
     studentDetails: st,
     studentFees: feeMap[st.studentId] || [],
@@ -262,7 +294,10 @@ export async function getStudentById(studentId: number) {
       feesGroupName: feesGroupModel.groupName,
       feesType: feesMasterModel.feesTypeId,
       feesTypeName: feesTypeModel.typeName,
-      amount: feesMasterModel.amount,
+      amount: studentFeesModel.amount,
+      paidAmount: studentFeesModel.paidAmount,
+      remainingAmount: studentFeesModel.remainingAmount,
+      status: studentFeesModel.status,
       dueDate: feesMasterModel.dueDate,
     })
     .from(studentFeesModel)

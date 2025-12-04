@@ -58,6 +58,13 @@ export const userRolesModel = mysqlTable('user_roles', {
 // ========================
 // Business Domain Tables
 // ========================
+export const sessionsModel = mysqlTable('sessions', {
+  sessionId: int('session_id').primaryKey().autoincrement(),
+  sessionName: varchar('session_name', { length: 20 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
+
 export const classesModel = mysqlTable('classes', {
   classId: int('class_id').primaryKey().autoincrement(),
   className: varchar('class_name', { length: 50 }).notNull(),
@@ -193,6 +200,47 @@ export const studentFeesModel = mysqlTable('student_fees', {
       onDelete: 'set null',
     }
   ),
+  amount: double('amount').notNull(),
+  paidAmount: double('paid_amount'),
+  remainingAmount: double('remaining_amount'),
+  status: mysqlEnum(['Paid', 'Unpaid', 'Partial']).default('Unpaid'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
+
+export const studentPaymentsModel = mysqlTable('student_payments', {
+  studentPaymentId: int('studnet_payment_id').primaryKey().autoincrement(),
+  studentFeesId: int('student_fees_id').references(
+    () => studentFeesModel.studentFeesId,
+    {
+      onDelete: 'set null',
+    }
+  ),
+  method: mysqlEnum('method', [
+    'cash',
+    'bank',
+    'bkash',
+    'nagad',
+    'rocket',
+  ]).notNull(),
+  paymentDate: date('payment_date').notNull(),
+  remarks: text('remarks'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
+
+export const studentPromotionModel = mysqlTable('student_promotions', {
+  studentPromotionId: int('student_promotion_id').primaryKey().autoincrement(),
+  studentId: int('student_id').references(() => studentsModel.studentId, {
+    onDelete: 'set null',
+  }),
+  sessionId: int('session_id').references(() => sessionsModel.sessionId, {
+    onDelete: 'set null',
+  }),
+  currentResult: mysqlEnum('current_result', ['Pass', 'Fail']),
+  nextSession: mysqlEnum('next_session', ['Continue', 'Leave']),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
 })
 
 // ========================
@@ -282,6 +330,26 @@ export const studentFeesRelations = relations(studentFeesModel, ({ one }) => ({
   }),
 }))
 
+export const studentPaymentRelations = relations(
+  studentPaymentsModel,
+  ({ one }) => ({
+    studentFees: one(studentFeesModel, {
+      fields: [studentPaymentsModel.studentFeesId],
+      references: [studentFeesModel.studentFeesId],
+    }),
+  })
+)
+
+export const studentPromotionRelations = relations(
+  studentPromotionModel,
+  ({ one }) => ({
+    student: one(studentsModel, {
+      fields: [studentPromotionModel.studentId],
+      references: [studentsModel.studentId],
+    }),
+  })
+)
+
 export type User = typeof userModel.$inferSelect
 export type NewUser = typeof userModel.$inferInsert
 export type Role = typeof roleModel.$inferSelect
@@ -308,3 +376,5 @@ export type Students = typeof studentsModel.$inferSelect
 export type NewStudents = typeof studentsModel.$inferInsert
 export type StudentFees = typeof studentFeesModel.$inferSelect
 export type NewStudentFees = typeof studentFeesModel.$inferInsert
+export type StudentPayments = typeof studentPaymentsModel.$inferInsert
+export type NewStudentPayments = typeof studentPaymentsModel.$inferInsert
