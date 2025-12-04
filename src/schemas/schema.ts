@@ -58,6 +58,13 @@ export const userRolesModel = mysqlTable('user_roles', {
 // ========================
 // Business Domain Tables
 // ========================
+export const sessionsModel = mysqlTable('sessions', {
+  sessionId: int('session_id').primaryKey().autoincrement(),
+  sessionName: varchar('session_name', { length: 20 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
+
 export const classesModel = mysqlTable('classes', {
   classId: int('class_id').primaryKey().autoincrement(),
   className: varchar('class_name', { length: 50 }).notNull(),
@@ -222,6 +229,20 @@ export const studentPaymentsModel = mysqlTable('student_payments', {
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
 
+export const studentPromotionModel = mysqlTable('student_promotions', {
+  studentPromotionId: int('student_promotion_id').primaryKey().autoincrement(),
+  studentId: int('student_id').references(() => studentsModel.studentId, {
+    onDelete: 'set null',
+  }),
+  sessionId: int('session_id').references(() => sessionsModel.sessionId, {
+    onDelete: 'set null',
+  }),
+  currentResult: mysqlEnum('current_result', ['Pass', 'Fail']),
+  nextSession: mysqlEnum('next_session', ['Continue', 'Leave']),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
+
 // ========================
 // Relations
 // ========================
@@ -315,6 +336,16 @@ export const studentPaymentRelations = relations(
     studentFees: one(studentFeesModel, {
       fields: [studentPaymentsModel.studentFeesId],
       references: [studentFeesModel.studentFeesId],
+    }),
+  })
+)
+
+export const studentPromotionRelations = relations(
+  studentPromotionModel,
+  ({ one }) => ({
+    student: one(studentsModel, {
+      fields: [studentPromotionModel.studentId],
+      references: [studentsModel.studentId],
     }),
   })
 )

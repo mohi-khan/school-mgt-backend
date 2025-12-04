@@ -57,14 +57,20 @@ export const createStudentController = async (req: Request, res: Response) => {
 
 export const getAllStudentsController = async (req: Request, res: Response) => {
   try {
-    requirePermission(req, 'view_student');
-    const data = await getAllStudents();
+    requirePermission(req, "view_student");
+
+    const classId = req.query.classId ? Number(req.query.classId) : null;
+    const sectionId = req.query.sectionId ? Number(req.query.sectionId) : null;
+
+    const data = await getAllStudents(classId, sectionId);
+
     res.json(data);
   } catch (error) {
     console.error("Get All Students Error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 
 export const getStudentByIdController = async (req: Request, res: Response) => {
   try {

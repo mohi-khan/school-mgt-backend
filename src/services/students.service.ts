@@ -1,4 +1,4 @@
-import { eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray } from 'drizzle-orm'
 import { db } from '../config/database'
 import {
   classesModel,
@@ -157,9 +157,16 @@ export const createStudent = async (data: {
   })
 }
 
-export async function getAllStudents() {
-  // 1️⃣ Fetch student + class + section info
-  const students = await db
+export async function getAllStudents(
+  classId?: number | null,
+  sectionId?: number | null
+) {
+  const conditions: any[] = []
+
+  if (classId) conditions.push(eq(studentsModel.classId, classId))
+  if (sectionId) conditions.push(eq(studentsModel.sectionId, sectionId))
+
+  const baseQuery = db
     .select({
       studentId: studentsModel.studentId,
       admissionNo: studentsModel.admissionNo,
@@ -202,24 +209,27 @@ export async function getAllStudents() {
       eq(studentsModel.sectionId, sectionsModel.sectionId)
     )
 
+  // Apply WHERE only when filters exist
+  const query =
+    conditions.length > 0 ? baseQuery.where(and(...conditions)) : baseQuery
+
+  const students = await query
+
   if (students.length === 0) return []
 
   const studentIds = students.map((s) => s.studentId)
 
-  // 2️⃣ Fetch all student fees
   const fees = await db
     .select()
     .from(studentFeesModel)
     .where(inArray(studentFeesModel.studentId, studentIds))
 
-  // 3️⃣ Group fees by studentId
   const feeMap: Record<number, any[]> = {}
   for (const f of fees) {
     if (!feeMap[f.studentId!]) feeMap[f.studentId!] = []
     feeMap[f.studentId!].push(f)
   }
 
-  // 4️⃣ Merge students + fees
   return students.map((st) => ({
     studentDetails: st,
     studentFees: feeMap[st.studentId] || [],
