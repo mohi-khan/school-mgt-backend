@@ -1,17 +1,17 @@
 import { NextFunction, Request, Response } from 'express'
-import { getAllSectionss } from '../services/sections.service'
 import { requirePermission } from '../services/utils/jwt.utils'
+import { getAllSessions } from '../services/sessions.service'
 
-export const getAllSectionssController = async (
+export const getAllSessionsController = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'view_section')
-    const sections = await getAllSectionss()
+    requirePermission(req, 'view_session')
+    const sessions = await getAllSessions()
 
-    res.status(200).json(sections)
+    res.status(200).json(sessions)
   } catch (error) {
     next(error)
   }

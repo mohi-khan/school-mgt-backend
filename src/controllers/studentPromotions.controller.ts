@@ -7,7 +7,7 @@ export const promoteStudentsController = async (
   res: Response
 ) => {
   try {
-    requirePermission(req, 'promote_student')
+    // requirePermission(req, 'promote_student')
     const input = req.body
 
     const result = await promoteStudents(input)

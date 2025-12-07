@@ -84,7 +84,7 @@ export const promoteStudents = async (
           studentId,
           studentName,
           rollNo: student.rollNo,
-          message: `All fees of this session is not paid of name: ${studentName}, roll: ${student.rollNo}`,
+          message: `All fees of previous session is not paid`,
         })
         continue
       }
@@ -95,7 +95,7 @@ export const promoteStudents = async (
       // 1️⃣ Update class + section
       await tx
         .update(studentsModel)
-        .set({ classId, sectionId: secitionId })
+        .set({ classId, sectionId: secitionId, sessionId: sessionId })
         .where(eq(studentsModel.studentId, studentId))
 
       // 2️⃣ Delete old student fees (all)
@@ -130,7 +130,6 @@ export const promoteStudents = async (
       // 4️⃣ Insert promotion record
       await tx.insert(studentPromotionModel).values({
         studentId,
-        sessionId,
         currentResult,
         nextSession,
       })

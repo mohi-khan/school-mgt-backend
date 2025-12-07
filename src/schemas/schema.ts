@@ -152,6 +152,9 @@ export const studentsModel = mysqlTable('students', {
   sectionId: int('section_id').references(() => sectionsModel.sectionId, {
     onDelete: 'set null',
   }),
+  sessionId: int('session_id').references(() => sessionsModel.sessionId, {
+    onDelete: 'set null',
+  }),
   firstName: varchar('first_name', { length: 50 }).notNull(),
   lastName: varchar('last_name', { length: 50 }).notNull(),
   gender: mysqlEnum('gender', ['male', 'female']).notNull(),
@@ -234,9 +237,6 @@ export const studentPromotionModel = mysqlTable('student_promotions', {
   studentId: int('student_id').references(() => studentsModel.studentId, {
     onDelete: 'set null',
   }),
-  sessionId: int('session_id').references(() => sessionsModel.sessionId, {
-    onDelete: 'set null',
-  }),
   currentResult: mysqlEnum('current_result', ['Pass', 'Fail']),
   nextSession: mysqlEnum('next_session', ['Continue', 'Leave']),
   createdAt: timestamp('created_at').defaultNow(),
@@ -316,7 +316,11 @@ export const studentRelations = relations(studentsModel, ({ one, many }) => ({
     fields: [studentsModel.sectionId],
     references: [sectionsModel.sectionId],
   }),
-  studentFees: many(studentFeesModel), // no fields/references needed for `many`
+  session: one(sessionsModel, {
+    fields: [studentsModel.sessionId],
+    references: [sessionsModel.sessionId],
+  }),
+  studentFees: many(studentFeesModel),
 }))
 
 export const studentFeesRelations = relations(studentFeesModel, ({ one }) => ({
