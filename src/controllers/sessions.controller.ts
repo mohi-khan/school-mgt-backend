@@ -8,7 +8,7 @@ export const getAllSessionsController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'view_section')
+    requirePermission(req, 'view_session')
     const sessions = await getAllSessions()
 
     res.status(200).json(sessions)

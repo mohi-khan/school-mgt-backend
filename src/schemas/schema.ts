@@ -237,9 +237,6 @@ export const studentPromotionModel = mysqlTable('student_promotions', {
   studentId: int('student_id').references(() => studentsModel.studentId, {
     onDelete: 'set null',
   }),
-  sessionId: int('session_id').references(() => sessionsModel.sessionId, {
-    onDelete: 'set null',
-  }),
   currentResult: mysqlEnum('current_result', ['Pass', 'Fail']),
   nextSession: mysqlEnum('next_session', ['Continue', 'Leave']),
   createdAt: timestamp('created_at').defaultNow(),
@@ -353,10 +350,6 @@ export const studentPromotionRelations = relations(
     student: one(studentsModel, {
       fields: [studentPromotionModel.studentId],
       references: [studentsModel.studentId],
-    }),
-    session: one(sessionsModel, {
-      fields: [studentPromotionModel.sessionId],
-      references: [sessionsModel.sessionId],
     }),
   })
 )
