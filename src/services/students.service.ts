@@ -6,6 +6,7 @@ import {
   feesMasterModel,
   feesTypeModel,
   sectionsModel,
+  sessionsModel,
   studentFeesModel,
   studentsModel,
 } from '../schemas'
@@ -82,6 +83,7 @@ export const createStudent = async (data: {
         rollNo: data.studentDetails.rollNo,
         classId: data.studentDetails.classId ?? null,
         sectionId: data.studentDetails.sectionId ?? null,
+        sessionId: data.studentDetails.sessionId ?? null,
         firstName: data.studentDetails.firstName,
         lastName: data.studentDetails.lastName,
         gender: data.studentDetails.gender,
@@ -173,6 +175,7 @@ export async function getAllStudents(
       rollNo: studentsModel.rollNo,
       classId: studentsModel.classId,
       sectionId: studentsModel.sectionId,
+      sessionId: studentsModel.sessionId,
       firstName: studentsModel.firstName,
       lastName: studentsModel.lastName,
       gender: studentsModel.gender,
@@ -201,12 +204,17 @@ export async function getAllStudents(
       updatedAt: studentsModel.updatedAt,
       className: classesModel.className,
       sectionName: sectionsModel.sectionName,
+      sessionName: sessionsModel.sessionName,
     })
     .from(studentsModel)
     .leftJoin(classesModel, eq(studentsModel.classId, classesModel.classId))
     .leftJoin(
       sectionsModel,
       eq(studentsModel.sectionId, sectionsModel.sectionId)
+    )
+    .leftJoin(
+      sessionsModel,
+      eq(studentsModel.sessionId, sessionsModel.sessionId)
     )
 
   // Apply WHERE only when filters exist
@@ -245,6 +253,7 @@ export async function getStudentById(studentId: number) {
       rollNo: studentsModel.rollNo,
       classId: studentsModel.classId,
       sectionId: studentsModel.sectionId,
+      sessionId: studentsModel.sessionId,
       firstName: studentsModel.firstName,
       lastName: studentsModel.lastName,
       gender: studentsModel.gender,
@@ -273,12 +282,17 @@ export async function getStudentById(studentId: number) {
       updatedAt: studentsModel.updatedAt,
       className: classesModel.className,
       sectionName: sectionsModel.sectionName,
+      sessionName: sessionsModel.sessionName,
     })
     .from(studentsModel)
     .leftJoin(classesModel, eq(studentsModel.classId, classesModel.classId))
     .leftJoin(
       sectionsModel,
       eq(studentsModel.sectionId, sectionsModel.sectionId)
+    )
+    .leftJoin(
+      sessionsModel,
+      eq(studentsModel.sessionId, sessionsModel.sessionId)
     )
     .where(eq(studentsModel.studentId, studentId))
 
