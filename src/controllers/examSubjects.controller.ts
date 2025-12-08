@@ -9,12 +9,23 @@ import {
   getAllExamSubjectss,
   getExamSubjectsById,
 } from '../services/examSubjects.service'
+import { z } from 'zod'
+
+const dateStringToDate = z.preprocess(
+  (arg) =>
+    typeof arg === 'string' || arg instanceof Date ? new Date(arg) : undefined,
+  z.date()
+)
 
 // Schema validation
-const createExamSubjectsSchema = createInsertSchema(examSubjectsModel).omit({
-  examSubjectId: true,
-  createdAt: true,
-})
+const createExamSubjectsSchema = createInsertSchema(examSubjectsModel)
+  .omit({
+    examSubjectId: true,
+    createdAt: true,
+  })
+  .extend({
+    examDate: dateStringToDate,
+  })
 
 const editExamSubjectsSchema = createExamSubjectsSchema.partial()
 
@@ -24,7 +35,7 @@ export const createExamSubjectsController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'create_fees_group')
+    requirePermission(req, 'create_exam_subject')
     const examSubjectsData = createExamSubjectsSchema.parse(req.body)
     const examSubjects = await createExamSubjects(examSubjectsData)
 
@@ -43,7 +54,7 @@ export const getAllExamSubjectssController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'view_fees_group')
+    requirePermission(req, 'view_exam_subject')
     const examSubjectss = await getAllExamSubjectss()
 
     res.status(200).json(examSubjectss)
@@ -58,7 +69,7 @@ export const getExamSubjectsController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'view_fees_group')
+    requirePermission(req, 'view_exam_subject')
     const id = Number(req.params.id)
     const examSubjects = await getExamSubjectsById(id)
 
@@ -74,7 +85,7 @@ export const editExamSubjectsController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'edit_fees_group')
+    requirePermission(req, 'edit_exam_subject')
     const id = Number(req.params.id)
     const examSubjectsData = editExamSubjectsSchema.parse(req.body)
     const examSubjects = await editExamSubjects(id, examSubjectsData)
@@ -85,21 +96,24 @@ export const editExamSubjectsController = async (
   }
 }
 
-export const deleteExamSubjectsController = async (req: Request, res: Response) => {
+export const deleteExamSubjectsController = async (
+  req: Request,
+  res: Response
+) => {
   try {
-    requirePermission(req, 'delete_fees_group')
-    const examSubjectsId = Number(req.params.id);
+    requirePermission(req, 'delete_exam_subject')
+    const examSubjectsId = Number(req.params.id)
 
-    const result = await deleteExamSubjects(examSubjectsId);
+    const result = await deleteExamSubjects(examSubjectsId)
 
     res.status(200).json({
       success: true,
       ...result,
-    });
+    })
   } catch (error: any) {
     res.status(400).json({
       success: false,
-      message: error.message || "Something went wrong",
-    });
+      message: error.message || 'Something went wrong',
+    })
   }
-};
+}

@@ -1,19 +1,19 @@
 import { Router } from "express";
 import {
-  createExamsGroupController,
-  deleteExamsGroupController,
-  editExamsGroupController,
-  getAllExamsGroupsController,
-  getExamsGroupController,
+  createExamGroupController,
+  deleteExamGroupController,
+  editExamGroupController,
+  getAllExamGroupsController,
+  getExamGroupController,
 } from "../controllers/examsGroup.controller";
 import { authenticateUser } from "../middlewares/auth.middleware";
 
 const router = Router();
 
-router.post("/create", authenticateUser,  createExamsGroupController);
-router.get("/getAll", authenticateUser,  getAllExamsGroupsController);
-router.get("/getById/:id", authenticateUser, getExamsGroupController);
-router.patch("/edit/:id", authenticateUser, editExamsGroupController);
-router.delete("/delete/:id", authenticateUser, deleteExamsGroupController);
+router.post("/create", authenticateUser,  createExamGroupController);
+router.get("/getAll", authenticateUser,  getAllExamGroupsController);
+router.get("/getById/:id", authenticateUser, getExamGroupController);
+router.patch("/edit/:id", authenticateUser, editExamGroupController);
+router.delete("/delete/:id", authenticateUser, deleteExamGroupController);
 
 export default router;
