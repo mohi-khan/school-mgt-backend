@@ -10,6 +10,7 @@ import studentsRoutes from "./students.routes";
 import studentFeesRoutes from "./student-fees.routes";
 import studentPromotionsRoutes from "./studentPromotions.routes"
 import examsGroupRotes from "./examsGroup.routes"
+import examSubjectsRoutes from "./examSubjects.routes"
 
 const router=Router()
 
@@ -23,6 +24,7 @@ router.use('/sessions', sessionRoutes);
 router.use('/students', studentsRoutes);
 router.use('/student-fees', studentFeesRoutes);
 router.use('/student-promotions', studentPromotionsRoutes);
-router.use('/exams-groups', examsGroupRotes);
+router.use('/exam-groups', examsGroupRotes);
+router.use('/exam-subjects', examSubjectsRoutes)
 
 export default router;
