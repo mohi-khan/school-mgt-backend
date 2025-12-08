@@ -9,6 +9,7 @@ import {
   double,
   date,
   mysqlEnum,
+  time,
 } from 'drizzle-orm/mysql-core'
 
 // ========================
@@ -243,6 +244,60 @@ export const studentPromotionModel = mysqlTable('student_promotions', {
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
 
+export const examsGroupModel = mysqlTable('exam_groups', {
+  examsGroupId: int('exam_group_id').primaryKey().autoincrement(),
+  examsGroupName: varchar('exam_group_name', { length: 255 }).notNull(),
+  description: text('description'),
+  createdBy: int('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedBy: int('updated_by'),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
+
+export const examSubjectsModel = mysqlTable('exam_subjects', {
+  examSubjectId: int('exam_subject_id').primaryKey().autoincrement(),
+  subjectName: varchar('subject_name', { length: 255 }).notNull(),
+  subjectCode: varchar('subject_code', { length: 10 }).notNull(),
+  examDate: date('exam_date').notNull(),
+  startTime: time('start_time').notNull(),
+  duration: int('duration').notNull(),
+  examMarks: int('exam_marks').notNull(),
+  classId: int('class_id').references(() => classesModel.classId, {
+    onDelete: 'set null',
+  }),
+  createdBy: int('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedBy: int('updated_by'),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
+
+export const examsModel = mysqlTable('exams', {
+  examId: int('exam_id').primaryKey().autoincrement(),
+  examName: varchar('exam_name', { length: 255 }).notNull(),
+  examsGroupId: int('exam_group_id').references(
+    () => examsGroupModel.examsGroupId,
+    {
+      onDelete: 'set null',
+    }
+  ),
+  sessionId: int('session_id').references(() => sessionsModel.sessionId, {
+    onDelete: 'set null',
+  }),
+  classId: int('class_id').references(() => classesModel.classId, {
+    onDelete: 'set null',
+  }),
+  examSubjectId: int('exam_subject_id').references(
+    () => examSubjectsModel.examSubjectId,
+    {
+      onDelete: 'set null',
+    }
+  ),
+  createdBy: int('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedBy: int('updated_by'),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
+
 // ========================
 // Relations
 // ========================
@@ -354,6 +409,32 @@ export const studentPromotionRelations = relations(
   })
 )
 
+export const examSubjectRelations = relations(examSubjectsModel, ({ one }) => ({
+  class: one(classesModel, {
+    fields: [examSubjectsModel.classId],
+    references: [classesModel.classId],
+  }),
+}))
+
+export const examRelations = relations(examsModel, ({ one }) => ({
+  examsGroup: one(examsGroupModel, {
+    fields: [examsModel.examsGroupId],
+    references: [examsGroupModel.examsGroupId],
+  }),
+  session: one(sessionsModel, {
+    fields: [examsModel.sessionId],
+    references: [sessionsModel.sessionId],
+  }),
+  class: one(classesModel, {
+    fields: [examsModel.classId],
+    references: [classesModel.classId],
+  }),
+  examSubject: one(examSubjectsModel, {
+    fields: [examsModel.examSubjectId],
+    references: [examSubjectsModel.examSubjectId],
+  }),
+}))
+
 export type User = typeof userModel.$inferSelect
 export type NewUser = typeof userModel.$inferInsert
 export type Role = typeof roleModel.$inferSelect
@@ -382,3 +463,9 @@ export type StudentFees = typeof studentFeesModel.$inferSelect
 export type NewStudentFees = typeof studentFeesModel.$inferInsert
 export type StudentPayments = typeof studentPaymentsModel.$inferInsert
 export type NewStudentPayments = typeof studentPaymentsModel.$inferInsert
+export type ExamGroup = typeof examsGroupModel.$inferInsert
+export type NewExamGroup = typeof examsGroupModel.$inferInsert
+export type ExamSubjects = typeof examSubjectsModel.$inferInsert
+export type NewExamSubjects = typeof examSubjectsModel.$inferInsert
+export type Exam = typeof examsModel.$inferInsert
+export type NewExam = typeof examsModel.$inferInsert
