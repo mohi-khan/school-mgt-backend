@@ -298,6 +298,30 @@ export const examsModel = mysqlTable('exams', {
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
 
+export const examResultModel = mysqlTable('exam_results', {
+  examResultId: int('exam_result_id').primaryKey().autoincrement(),
+  sessionId: int('exam_id').references(() => sessionsModel.sessionId, {
+    onDelete: 'set null',
+  }),
+  examId: int('exam_id').references(() => examsModel.examId, {
+    onDelete: 'set null',
+  }),
+  studentId: int('student_id').references(() => studentsModel.studentId, {
+    onDelete: 'set null',
+  }),
+  examSubjectId: int('exam_subject_id').references(
+    () => examSubjectsModel.examSubjectId,
+    {
+      onDelete: 'set null',
+    }
+  ),
+  gainedMarks: int('gained_marks').notNull(),
+  createdBy: int('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedBy: int('updated_by'),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
+
 // ========================
 // Relations
 // ========================
@@ -435,6 +459,25 @@ export const examRelations = relations(examsModel, ({ one }) => ({
   }),
 }))
 
+export const examResultRelations = relations(examResultModel, ({ one }) => ({
+  session: one(sessionsModel, {
+    fields: [examResultModel.sessionId],
+    references: [sessionsModel.sessionId],
+  }),
+  exam: one(examsModel, {
+    fields: [examResultModel.examId],
+    references: [examsModel.examId],
+  }),
+  student: one(studentsModel, {
+    fields: [examResultModel.studentId],
+    references: [studentsModel.studentId],
+  }),
+  examSubject: one(examSubjectsModel, {
+    fields: [examResultModel.examSubjectId],
+    references: [examSubjectsModel.examSubjectId],
+  }),
+}))
+
 export type User = typeof userModel.$inferSelect
 export type NewUser = typeof userModel.$inferInsert
 export type Role = typeof roleModel.$inferSelect
@@ -469,3 +512,5 @@ export type ExamSubjects = typeof examSubjectsModel.$inferInsert
 export type NewExamSubjects = typeof examSubjectsModel.$inferInsert
 export type Exam = typeof examsModel.$inferInsert
 export type NewExam = typeof examsModel.$inferInsert
+export type ExamResult = typeof examResultModel.$inferInsert
+export type NewExamResult = typeof examResultModel.$inferInsert

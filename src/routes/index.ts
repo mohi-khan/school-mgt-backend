@@ -12,6 +12,7 @@ import studentPromotionsRoutes from "./studentPromotions.routes"
 import examGroupsRotes from "./examGroups.routes"
 import examSubjectsRoutes from "./examSubjects.routes"
 import examsRoutes from "./exams.routes"
+import examResultRoutes from "./examResult.routes"
 
 const router=Router()
 
@@ -28,5 +29,6 @@ router.use('/student-promotions', studentPromotionsRoutes);
 router.use('/exam-groups', examGroupsRotes);
 router.use('/exam-subjects', examSubjectsRoutes);
 router.use('/exams', examsRoutes);
+router.use('/exam-results', examResultRoutes);
 
 export default router;
