@@ -5,7 +5,7 @@ import {
   editExamGroupController,
   getAllExamGroupsController,
   getExamGroupController,
-} from "../controllers/examsGroup.controller";
+} from "../controllers/examGroups.controller";
 import { authenticateUser } from "../middlewares/auth.middleware";
 
 const router = Router();
