@@ -22,6 +22,7 @@ export const createExamResult = async (
       ...examResultData,
       createdAt: new Date(),
     })
+    console.log("🚀 ~ createExamResult ~ newExamResult:", newExamResult)
 
     return newExamResult
   } catch (error) {
@@ -48,7 +49,7 @@ export const getAllExamResults = async () => {
       studentName: sql<string>`
         CONCAT(${studentsModel.firstName}, ' ', ${studentsModel.lastName})
       `.as('student_name'),
-      subjectName: examSubjectsModel.subjectName,
+      examSubjectName: examSubjectsModel.subjectName,
     })
     .from(examResultModel)
     .leftJoin(

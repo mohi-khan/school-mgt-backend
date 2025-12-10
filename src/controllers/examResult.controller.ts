@@ -24,8 +24,9 @@ export const createExamResultController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'create_fees_group')
+    requirePermission(req, 'create_exam_result')
     const examResultData = createExamResultSchema.parse(req.body)
+    console.log("🚀 ~ createExamResultController ~ req.body:", req.body)
     const examResult = await createExamResult(examResultData)
 
     res.status(201).json({
@@ -43,7 +44,7 @@ export const getAllExamResultsController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'view_fees_group')
+    requirePermission(req, 'view_exam_result')
     const examResults = await getAllExamResults()
 
     res.status(200).json(examResults)
@@ -58,7 +59,7 @@ export const getExamResultController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'view_fees_group')
+    requirePermission(req, 'view_exam_result')
     const id = Number(req.params.id)
     const examResult = await getExamResultById(id)
 
@@ -74,7 +75,7 @@ export const editExamResultController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'edit_fees_group')
+    requirePermission(req, 'edit_exam_result')
     const id = Number(req.params.id)
     const examResultData = editExamResultSchema.parse(req.body)
     const examResult = await editExamResult(id, examResultData)
@@ -87,7 +88,7 @@ export const editExamResultController = async (
 
 export const deleteExamResultController = async (req: Request, res: Response) => {
   try {
-    requirePermission(req, 'delete_fees_group')
+    requirePermission(req, 'delete_exam_result')
     const examResultId = Number(req.params.id);
 
     const result = await deleteExamResult(examResultId);

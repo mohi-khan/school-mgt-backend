@@ -300,7 +300,7 @@ export const examsModel = mysqlTable('exams', {
 
 export const examResultModel = mysqlTable('exam_results', {
   examResultId: int('exam_result_id').primaryKey().autoincrement(),
-  sessionId: int('exam_id').references(() => sessionsModel.sessionId, {
+  sessionId: int('session_id').references(() => sessionsModel.sessionId, {
     onDelete: 'set null',
   }),
   examId: int('exam_id').references(() => examsModel.examId, {
