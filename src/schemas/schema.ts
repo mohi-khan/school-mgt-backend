@@ -244,9 +244,9 @@ export const studentPromotionModel = mysqlTable('student_promotions', {
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
 
-export const examsGroupModel = mysqlTable('exam_groups', {
-  examsGroupId: int('exam_group_id').primaryKey().autoincrement(),
-  examsGroupName: varchar('exam_group_name', { length: 255 }).notNull(),
+export const examGroupsModel = mysqlTable('exam_groups', {
+  examGroupsId: int('exam_group_id').primaryKey().autoincrement(),
+  examGroupName: varchar('exam_group_name', { length: 255 }).notNull(),
   description: text('description'),
   createdBy: int('created_by').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
@@ -274,8 +274,8 @@ export const examSubjectsModel = mysqlTable('exam_subjects', {
 export const examsModel = mysqlTable('exams', {
   examId: int('exam_id').primaryKey().autoincrement(),
   examName: varchar('exam_name', { length: 255 }).notNull(),
-  examsGroupId: int('exam_group_id').references(
-    () => examsGroupModel.examsGroupId,
+  examGroupsId: int('exam_group_id').references(
+    () => examGroupsModel.examGroupsId,
     {
       onDelete: 'set null',
     }
@@ -292,6 +292,30 @@ export const examsModel = mysqlTable('exams', {
       onDelete: 'set null',
     }
   ),
+  createdBy: int('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedBy: int('updated_by'),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
+
+export const examResultModel = mysqlTable('exam_results', {
+  examResultId: int('exam_result_id').primaryKey().autoincrement(),
+  sessionId: int('session_id').references(() => sessionsModel.sessionId, {
+    onDelete: 'set null',
+  }),
+  examId: int('exam_id').references(() => examsModel.examId, {
+    onDelete: 'set null',
+  }),
+  studentId: int('student_id').references(() => studentsModel.studentId, {
+    onDelete: 'set null',
+  }),
+  examSubjectId: int('exam_subject_id').references(
+    () => examSubjectsModel.examSubjectId,
+    {
+      onDelete: 'set null',
+    }
+  ),
+  gainedMarks: int('gained_marks').notNull(),
   createdBy: int('created_by').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedBy: int('updated_by'),
@@ -417,9 +441,9 @@ export const examSubjectRelations = relations(examSubjectsModel, ({ one }) => ({
 }))
 
 export const examRelations = relations(examsModel, ({ one }) => ({
-  examsGroup: one(examsGroupModel, {
-    fields: [examsModel.examsGroupId],
-    references: [examsGroupModel.examsGroupId],
+  examGroups: one(examGroupsModel, {
+    fields: [examsModel.examGroupsId],
+    references: [examGroupsModel.examGroupsId],
   }),
   session: one(sessionsModel, {
     fields: [examsModel.sessionId],
@@ -431,6 +455,25 @@ export const examRelations = relations(examsModel, ({ one }) => ({
   }),
   examSubject: one(examSubjectsModel, {
     fields: [examsModel.examSubjectId],
+    references: [examSubjectsModel.examSubjectId],
+  }),
+}))
+
+export const examResultRelations = relations(examResultModel, ({ one }) => ({
+  session: one(sessionsModel, {
+    fields: [examResultModel.sessionId],
+    references: [sessionsModel.sessionId],
+  }),
+  exam: one(examsModel, {
+    fields: [examResultModel.examId],
+    references: [examsModel.examId],
+  }),
+  student: one(studentsModel, {
+    fields: [examResultModel.studentId],
+    references: [studentsModel.studentId],
+  }),
+  examSubject: one(examSubjectsModel, {
+    fields: [examResultModel.examSubjectId],
     references: [examSubjectsModel.examSubjectId],
   }),
 }))
@@ -463,9 +506,11 @@ export type StudentFees = typeof studentFeesModel.$inferSelect
 export type NewStudentFees = typeof studentFeesModel.$inferInsert
 export type StudentPayments = typeof studentPaymentsModel.$inferInsert
 export type NewStudentPayments = typeof studentPaymentsModel.$inferInsert
-export type ExamGroup = typeof examsGroupModel.$inferInsert
-export type NewExamGroup = typeof examsGroupModel.$inferInsert
+export type ExamGroup = typeof examGroupsModel.$inferInsert
+export type NewExamGroup = typeof examGroupsModel.$inferInsert
 export type ExamSubjects = typeof examSubjectsModel.$inferInsert
 export type NewExamSubjects = typeof examSubjectsModel.$inferInsert
 export type Exam = typeof examsModel.$inferInsert
 export type NewExam = typeof examsModel.$inferInsert
+export type ExamResult = typeof examResultModel.$inferInsert
+export type NewExamResult = typeof examResultModel.$inferInsert

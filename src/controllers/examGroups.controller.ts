@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import { createInsertSchema } from 'drizzle-zod'
-import { examsGroupModel } from '../schemas'
+import { examGroupsModel } from '../schemas'
 import { requirePermission } from '../services/utils/jwt.utils'
 import {
   createExamGroup,
@@ -8,11 +8,11 @@ import {
   editExamGroup,
   getAllExamGroups,
   getExamGroupById,
-} from '../services/examsGroup.service'
+} from '../services/examGroups.service'
 
 // Schema validation
-const createExamGroupSchema = createInsertSchema(examsGroupModel).omit({
-  examsGroupId: true,
+const createExamGroupSchema = createInsertSchema(examGroupsModel).omit({
+  examGroupsId: true,
   createdAt: true,
 })
 
@@ -25,12 +25,12 @@ export const createExamGroupController = async (
 ) => {
   try {
     requirePermission(req, 'create_exam_group')
-    const examsGroupData = createExamGroupSchema.parse(req.body)
-    const examsGroup = await createExamGroup(examsGroupData)
+    const examGroupsData = createExamGroupSchema.parse(req.body)
+    const examGroups = await createExamGroup(examGroupsData)
 
     res.status(201).json({
       status: 'success',
-      data: examsGroup,
+      data: examGroups,
     })
   } catch (error) {
     next(error)
@@ -44,9 +44,9 @@ export const getAllExamGroupsController = async (
 ) => {
   try {
     requirePermission(req, 'view_exam_group')
-    const examsGroups = await getAllExamGroups()
+    const examGroupss = await getAllExamGroups()
 
-    res.status(200).json(examsGroups)
+    res.status(200).json(examGroupss)
   } catch (error) {
     next(error)
   }
@@ -60,9 +60,9 @@ export const getExamGroupController = async (
   try {
     requirePermission(req, 'view_exam_group')
     const id = Number(req.params.id)
-    const examsGroup = await getExamGroupById(id)
+    const examGroups = await getExamGroupById(id)
 
-    res.status(200).json(examsGroup)
+    res.status(200).json(examGroups)
   } catch (error) {
     next(error)
   }
@@ -76,10 +76,10 @@ export const editExamGroupController = async (
   try {
     requirePermission(req, 'edit_exam_group')
     const id = Number(req.params.id)
-    const examsGroupData = editExamGroupSchema.parse(req.body)
-    const examsGroup = await editExamGroup(id, examsGroupData)
+    const examGroupsData = editExamGroupSchema.parse(req.body)
+    const examGroups = await editExamGroup(id, examGroupsData)
 
-    res.status(200).json(examsGroup)
+    res.status(200).json(examGroups)
   } catch (error) {
     next(error)
   }
@@ -88,9 +88,9 @@ export const editExamGroupController = async (
 export const deleteExamGroupController = async (req: Request, res: Response) => {
   try {
     requirePermission(req, 'delete_exam_group')
-    const examsGroupId = Number(req.params.id);
+    const examGroupsId = Number(req.params.id);
 
-    const result = await deleteExamGroup(examsGroupId);
+    const result = await deleteExamGroup(examGroupsId);
 
     res.status(200).json({
       success: true,
