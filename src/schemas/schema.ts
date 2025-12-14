@@ -351,6 +351,35 @@ export const incomeModel = mysqlTable('income', {
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
 
+export const expenseHeadModel = mysqlTable('expense_head', {
+  expenseHeadId: int('expense_head_id').primaryKey().autoincrement(),
+  expenseHead: varchar('expense_head', { length: 255 }).notNull(),
+  description: text('description'),
+  createdBy: int('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedBy: int('updated_by'),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
+
+export const expenseModel = mysqlTable('expense', {
+  expenseId: int('expense_id').primaryKey().autoincrement(),
+  expenseHeadId: int('expense_head_id').references(
+    () => expenseHeadModel.expenseHeadId,
+    {
+      onDelete: 'set null',
+    }
+  ),
+  name: varchar('name', { length: 255 }).notNull(),
+  invoiceNumber: int('invoice_number').notNull(),
+  date: date('date').notNull(),
+  amount: double('amount').notNull(),
+  description: text('description'),
+  createdBy: int('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedBy: int('updated_by'),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
+
 // ========================
 // Relations
 // ========================
@@ -514,6 +543,13 @@ export const incomeRelations = relations(incomeModel, ({ one }) => ({
   }),
 }))
 
+export const expenseRelations = relations(expenseModel, ({ one }) => ({
+  expenseHead: one(expenseHeadModel, {
+    fields: [expenseModel.expenseHeadId],
+    references: [expenseHeadModel.expenseHeadId],
+  }),
+}))
+
 export type User = typeof userModel.$inferSelect
 export type NewUser = typeof userModel.$inferInsert
 export type Role = typeof roleModel.$inferSelect
@@ -554,3 +590,5 @@ export type NewIncomeHead = typeof incomeHeadModel.$inferInsert
 export type IncomeHead = typeof incomeHeadModel.$inferInsert
 export type Income = typeof incomeModel.$inferInsert
 export type NewIncome = typeof incomeModel.$inferInsert
+export type ExpenseHead = typeof expenseHeadModel.$inferInsert
+export type NewExpenseHead = typeof expenseHeadModel.$inferInsert

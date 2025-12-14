@@ -15,6 +15,7 @@ import examsRoutes from './exams.routes'
 import examResultRoutes from './examResult.routes'
 import incomeHeadRoutes from './incomeHead.routes'
 import incomeRoutes from './income.routes'
+import expenseHeadRoutes from './expenseHead.routes'
 
 const router = Router()
 
@@ -34,5 +35,6 @@ router.use('/exams', examsRoutes)
 router.use('/exam-results', examResultRoutes)
 router.use('/income-heads', incomeHeadRoutes)
 router.use('/incomes', incomeRoutes)
+router.use('/expense-heads', expenseHeadRoutes)
 
 export default router
