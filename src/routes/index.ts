@@ -14,6 +14,7 @@ import examSubjectsRoutes from './examSubjects.routes'
 import examsRoutes from './exams.routes'
 import examResultRoutes from './examResult.routes'
 import incomeHeadRoutes from './incomeHead.routes'
+import incomeRoutes from './income.routes'
 
 const router = Router()
 
@@ -31,6 +32,7 @@ router.use('/exam-groups', examGroupsRotes)
 router.use('/exam-subjects', examSubjectsRoutes)
 router.use('/exams', examsRoutes)
 router.use('/exam-results', examResultRoutes)
-router.use('/income-head', incomeHeadRoutes)
+router.use('/income-heads', incomeHeadRoutes)
+router.use('/incomes', incomeRoutes)
 
 export default router

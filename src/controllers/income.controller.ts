@@ -1,58 +1,58 @@
 import { NextFunction, Request, Response } from 'express'
 import { createInsertSchema } from 'drizzle-zod'
-import { incomeHeadModel } from '../schemas'
+import { incomeModel } from '../schemas'
 import { requirePermission } from '../services/utils/jwt.utils'
 import {
-  createIncomeHead,
-  deleteIncomeHead,
-  editIncomeHead,
-  getAllIncomeHeads,
-  getIncomeHeadById,
-} from '../services/incomeHead.service'
+  createIncome,
+  deleteIncome,
+  editIncome,
+  getAllIncomes,
+  getIncomeById,
+} from '../services/income.service'
 
 // Schema validation
-const createIncomeHeadSchema = createInsertSchema(incomeHeadModel).omit({
-  incomeHeadId: true,
+const createIncomeSchema = createInsertSchema(incomeModel).omit({
+  incomeId: true,
   createdAt: true,
 })
 
-const editIncomeHeadSchema = createIncomeHeadSchema.partial()
+const editIncomeSchema = createIncomeSchema.partial()
 
-export const createIncomeHeadController = async (
+export const createIncomeController = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
     requirePermission(req, 'create_income_head')
-    const incomeHeadData = createIncomeHeadSchema.parse(req.body)
-    const incomeHead = await createIncomeHead(incomeHeadData)
+    const incomeData = createIncomeSchema.parse(req.body)
+    const income = await createIncome(incomeData)
 
     res.status(201).json({
       status: 'success',
-      data: incomeHead,
+      data: income,
     })
   } catch (error) {
     next(error)
   }
 }
 
-export const getAllIncomeHeadsController = async (
+export const getAllIncomesController = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
     requirePermission(req, 'view_income_head')
-    const incomeHeads = await getAllIncomeHeads()
+    const incomes = await getAllIncomes()
 
-    res.status(200).json(incomeHeads)
+    res.status(200).json(incomes)
   } catch (error) {
     next(error)
   }
 }
 
-export const getIncomeHeadController = async (
+export const getIncomeController = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -60,15 +60,15 @@ export const getIncomeHeadController = async (
   try {
     requirePermission(req, 'view_income_head')
     const id = Number(req.params.id)
-    const incomeHead = await getIncomeHeadById(id)
+    const income = await getIncomeById(id)
 
-    res.status(200).json(incomeHead)
+    res.status(200).json(income)
   } catch (error) {
     next(error)
   }
 }
 
-export const editIncomeHeadController = async (
+export const editIncomeController = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -76,21 +76,21 @@ export const editIncomeHeadController = async (
   try {
     requirePermission(req, 'edit_income_head')
     const id = Number(req.params.id)
-    const incomeHeadData = editIncomeHeadSchema.parse(req.body)
-    const incomeHead = await editIncomeHead(id, incomeHeadData)
+    const incomeData = editIncomeSchema.parse(req.body)
+    const income = await editIncome(id, incomeData)
 
-    res.status(200).json(incomeHead)
+    res.status(200).json(income)
   } catch (error) {
     next(error)
   }
 }
 
-export const deleteIncomeHeadController = async (req: Request, res: Response) => {
+export const deleteIncomeController = async (req: Request, res: Response) => {
   try {
     requirePermission(req, 'delete_income_head')
-    const incomeHeadId = Number(req.params.id);
+    const incomeId = Number(req.params.id);
 
-    const result = await deleteIncomeHead(incomeHeadId);
+    const result = await deleteIncome(incomeId);
 
     res.status(200).json({
       success: true,
