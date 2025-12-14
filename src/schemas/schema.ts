@@ -592,3 +592,5 @@ export type Income = typeof incomeModel.$inferInsert
 export type NewIncome = typeof incomeModel.$inferInsert
 export type ExpenseHead = typeof expenseHeadModel.$inferInsert
 export type NewExpenseHead = typeof expenseHeadModel.$inferInsert
+export type Expense = typeof expenseModel.$inferInsert
+export type NewExpense = typeof expenseModel.$inferInsert
