@@ -86,6 +86,19 @@ export const sectionsModel = mysqlTable('sections', {
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
 
+export const bankAccountModel = mysqlTable('bank_account', {
+  bankAccountId: int('bank_account_id').autoincrement().primaryKey(),
+  bankName: varchar('bank_name', { length: 100 }).notNull(),
+  accountNumber: varchar('account_number', { length: 50 }).notNull(),
+  branch: varchar('branch', { length: 100 }),
+  balance: double('balance').notNull(),
+  accountName: varchar('account_name', { length: 100 }).notNull(),
+  createdBy: int('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedBy: int('updated_by'),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
+
 export const classSectionsModel = mysqlTable('class_sections', {
   classSectionId: int('class_section_id').primaryKey().autoincrement(),
   classId: int('class_id').references(() => classesModel.classId, {
@@ -227,7 +240,15 @@ export const studentPaymentsModel = mysqlTable('student_payments', {
     'nagad',
     'rocket',
   ]).notNull(),
+  bankAccountId: int('bank_account_id').references(
+    () => bankAccountModel.bankAccountId,
+    {
+      onDelete: 'set null',
+    }
+  ),
+  phoneNumber: varchar('phone_number', { length: 14 }),
   paymentDate: date('payment_date').notNull(),
+  paidAmount: double('paid_amount').notNull(),
   remarks: text('remarks'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').onUpdateNow(),
@@ -564,6 +585,8 @@ export type Classes = typeof classesModel.$inferSelect
 export type NewClasses = typeof classesModel.$inferInsert
 export type Section = typeof sectionsModel.$inferSelect
 export type NewSection = typeof sectionsModel.$inferInsert
+export type BankAccount = typeof bankAccountModel.$inferInsert
+export type NewBankAccount = typeof bankAccountModel.$inferInsert
 export type ClassSection = typeof classSectionsModel.$inferSelect
 export type NewClassSection = typeof classSectionsModel.$inferInsert
 export type FeesGroup = typeof feesGroupModel.$inferSelect

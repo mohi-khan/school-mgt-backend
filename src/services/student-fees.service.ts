@@ -10,14 +10,8 @@ import {
   studentsModel,
 } from '../schemas'
 
-type FeeInput = {
-  studentFeesId: number
-  paymentType: 'Paid' | 'Partial'
-  paidAmount?: number
-}
-
 export const collectFees = async (body: any) => {
-  const { studentFeesId, paidAmount, method, paymentDate, remarks } = body
+  const { studentFeesId, paidAmount, method, bankAccountId, phoneNumber, paymentDate, remarks } = body
 
   if (!studentFeesId) throw new Error('studentFeesId is required')
   if (!paidAmount || paidAmount <= 0) throw new Error('paidAmount is required')
@@ -67,7 +61,10 @@ export const collectFees = async (body: any) => {
   await db.insert(studentPaymentsModel).values({
     studentFeesId,
     method,
+    bankAccountId: bankAccountId || null,
+    phoneNumber: phoneNumber || null,
     paymentDate: new Date(paymentDate),
+    paidAmount: updatedPaidAmount,
     remarks: remarks || null,
     createdAt: new Date(),
   })
