@@ -64,6 +64,7 @@ export const collectFees = async (body: any) => {
     bankAccountId: bankAccountId || null,
     phoneNumber: phoneNumber || null,
     paymentDate: new Date(paymentDate),
+    paidAmount: updatedPaidAmount,
     remarks: remarks || null,
     createdAt: new Date(),
   })

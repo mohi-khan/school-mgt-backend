@@ -248,6 +248,7 @@ export const studentPaymentsModel = mysqlTable('student_payments', {
   ),
   phoneNumber: varchar('phone_number', { length: 14 }),
   paymentDate: date('payment_date').notNull(),
+  paidAmount: double('paid_amount').notNull(),
   remarks: text('remarks'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').onUpdateNow(),
