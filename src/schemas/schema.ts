@@ -240,6 +240,13 @@ export const studentPaymentsModel = mysqlTable('student_payments', {
     'nagad',
     'rocket',
   ]).notNull(),
+  bankAccountId: int('bank_account_id').references(
+    () => bankAccountModel.bankAccountId,
+    {
+      onDelete: 'set null',
+    }
+  ),
+  phoneNumber: varchar('phone_number', { length: 14 }),
   paymentDate: date('payment_date').notNull(),
   remarks: text('remarks'),
   createdAt: timestamp('created_at').defaultNow(),
