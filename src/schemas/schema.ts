@@ -355,13 +355,13 @@ export const incomeHeadModel = mysqlTable('income_head', {
 
 export const incomeModel = mysqlTable('income', {
   incomeId: int('income_id').primaryKey().autoincrement(),
+  name: varchar('name', { length: 255 }).notNull(),
   incomeHeadId: int('income_head_id').references(
     () => incomeHeadModel.incomeHeadId,
     {
       onDelete: 'set null',
     }
   ),
-  name: varchar('name', { length: 255 }).notNull(),
   invoiceNumber: int('invoice_number').notNull(),
   date: date('date').notNull(),
   amount: double('amount').notNull(),
