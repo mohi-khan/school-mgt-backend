@@ -1,18 +1,24 @@
 import { NextFunction, Request, Response } from 'express'
-import { getAllSectionss } from '../services/sections.service'
 import { requirePermission } from '../services/utils/jwt.utils'
+import { getSectionsByClassId } from '../services/sections.service'
 
-export const getAllSectionssController = async (
+export const getSectionsByClassIdController = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
     requirePermission(req, 'view_section')
-    const sections = await getAllSectionss()
+
+    const classId = req.query.classId
+      ? Number(req.query.classId)
+      : undefined
+
+    const sections = await getSectionsByClassId(classId)
 
     res.status(200).json(sections)
   } catch (error) {
     next(error)
   }
 }
+

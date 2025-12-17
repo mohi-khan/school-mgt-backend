@@ -86,19 +86,6 @@ export const sectionsModel = mysqlTable('sections', {
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
 
-export const bankAccountModel = mysqlTable('bank_account', {
-  bankAccountId: int('bank_account_id').autoincrement().primaryKey(),
-  bankName: varchar('bank_name', { length: 100 }).notNull(),
-  accountNumber: varchar('account_number', { length: 50 }).notNull(),
-  branch: varchar('branch', { length: 100 }),
-  balance: double('balance').notNull(),
-  accountName: varchar('account_name', { length: 100 }).notNull(),
-  createdBy: int('created_by').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedBy: int('updated_by'),
-  updatedAt: timestamp('updated_at').onUpdateNow(),
-})
-
 export const classSectionsModel = mysqlTable('class_sections', {
   classSectionId: int('class_section_id').primaryKey().autoincrement(),
   classId: int('class_id').references(() => classesModel.classId, {
@@ -111,6 +98,19 @@ export const classSectionsModel = mysqlTable('class_sections', {
   classTeacherId: int('class_teacher_id'),
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
+
+export const bankAccountModel = mysqlTable('bank_account', {
+  bankAccountId: int('bank_account_id').autoincrement().primaryKey(),
+  bankName: varchar('bank_name', { length: 100 }).notNull(),
+  accountNumber: varchar('account_number', { length: 50 }).notNull(),
+  branch: varchar('branch', { length: 100 }),
+  balance: double('balance').notNull(),
+  accountName: varchar('account_name', { length: 100 }).notNull(),
+  createdBy: int('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedBy: int('updated_by'),
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
 
