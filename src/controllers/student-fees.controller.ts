@@ -9,39 +9,12 @@ export const collectFeesController = async (req: Request, res: Response) => {
   try {
     requirePermission(req, 'collect_student_fees')
 
-    const body = req.body
+    const result = await collectFees(req.body)
 
-    if (!body.studentFeesId) {
-      res.status(400).json({
-        success: false,
-        message: 'studentFeesId is required',
-      })
-    }
-
-    if (!body.paidAmount || body.paidAmount <= 0) {
-      res.status(400).json({
-        success: false,
-        message: 'paidAmount is required & must be > 0',
-      })
-    }
-
-    if (!body.method) {
-      res.status(400).json({
-        success: false,
-        message: 'payment method is required',
-      })
-    }
-
-    if (!body.paymentDate) {
-      res.status(400).json({
-        success: false,
-        message: 'paymentDate is required',
-      })
-    }
-
-    const result = await collectFees(body)
-
-    res.status(200).json(result)
+    res.status(200).json({
+      success: true,
+      data: result,
+    })
   } catch (error: any) {
     res.status(400).json({
       success: false,
