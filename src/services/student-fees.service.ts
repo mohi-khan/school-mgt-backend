@@ -11,7 +11,16 @@ import {
 } from '../schemas'
 
 export const collectFees = async (body: any) => {
-  const { studentFeesId, paidAmount, method, bankAccountId, phoneNumber, paymentDate, remarks } = body
+  const {
+    studentFeesId,
+    studentId,
+    paidAmount,
+    method,
+    bankAccountId,
+    phoneNumber,
+    paymentDate,
+    remarks,
+  } = body
 
   if (!studentFeesId) throw new Error('studentFeesId is required')
   if (!paidAmount || paidAmount <= 0) throw new Error('paidAmount is required')
@@ -31,6 +40,20 @@ export const collectFees = async (body: any) => {
 
   if (!feeRecord) {
     throw new Error(`Fee record not found for ID ${studentFeesId}`)
+  }
+
+  const student = await db
+    .select({
+      classId: studentsModel.classId,
+      sectionId: studentsModel.sectionId,
+      sessionId: studentsModel.sessionId,
+    })
+    .from(studentsModel)
+    .where(eq(studentsModel.studentId, studentId))
+    .then((res) => res[0])
+
+  if (!student) {
+    throw new Error(`Student not found for ID ${studentId}`)
   }
 
   // Existing paid + new paid
@@ -60,6 +83,10 @@ export const collectFees = async (body: any) => {
   // ➕ Insert into student_payments
   await db.insert(studentPaymentsModel).values({
     studentFeesId,
+    studentId,
+    classId: student.classId,
+    sectionId: student.sectionId,
+    sessionId: student.sessionId,
     method,
     bankAccountId: bankAccountId || null,
     phoneNumber: phoneNumber || null,

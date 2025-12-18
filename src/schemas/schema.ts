@@ -233,6 +233,18 @@ export const studentPaymentsModel = mysqlTable('student_payments', {
       onDelete: 'set null',
     }
   ),
+  studentId: int('student_id').references(() => studentsModel.studentId, {
+    onDelete: 'set null',
+  }),
+  classId: int('class_id').references(() => classesModel.classId, {
+    onDelete: 'set null',
+  }),
+  sectionId: int('section_id').references(() => sectionsModel.sectionId, {
+    onDelete: 'set null',
+  }),
+  sessionId: int('session_id').references(() => sessionsModel.sessionId, {
+    onDelete: 'set null',
+  }),
   method: mysqlEnum('method', [
     'cash',
     'bank',
@@ -498,6 +510,18 @@ export const studentPaymentRelations = relations(
     studentFees: one(studentFeesModel, {
       fields: [studentPaymentsModel.studentFeesId],
       references: [studentFeesModel.studentFeesId],
+    }),
+    class: one(classesModel, {
+      fields: [studentPaymentsModel.studentFeesId],
+      references: [classesModel.classId],
+    }),
+    section: one(sectionsModel, {
+      fields: [studentPaymentsModel.studentFeesId],
+      references: [sectionsModel.sectionId],
+    }),
+    session: one(sessionsModel, {
+      fields: [studentPaymentsModel.studentFeesId],
+      references: [sessionsModel.sessionId],
     }),
   })
 )

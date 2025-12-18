@@ -1,18 +1,22 @@
 import { db } from '../config/database'
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
 import {
+  bankAccountModel,
   classesModel,
   expenseHeadModel,
   expenseModel,
   incomeHeadModel,
   incomeModel,
   sectionsModel,
-  studentFeesModel,
+  sessionsModel,
   studentPaymentsModel,
   studentsModel,
 } from '../schemas'
 
-export const studentPaymentReport = async (fromDate: string, toDate: string) => {
+export const studentPaymentReport = async (
+  fromDate: string,
+  toDate: string
+) => {
   return await db
     .select({
       studentPaymentId: studentPaymentsModel.studentPaymentId,
@@ -22,24 +26,34 @@ export const studentPaymentReport = async (fromDate: string, toDate: string) => 
       `.as('studentName'),
       studentClass: classesModel.className,
       studentSection: sectionsModel.sectionName,
+      studentSession: sessionsModel.sessionName,
+      method: studentPaymentsModel.method,
+      bankName: bankAccountModel.bankName,
+      accountNumber: bankAccountModel.accountNumber,
+      branch: bankAccountModel.branch,
+      phoneNumber: studentPaymentsModel.phoneNumber,
       paidAmount: studentPaymentsModel.paidAmount,
     })
     .from(studentPaymentsModel)
     .innerJoin(
-      studentFeesModel,
-      eq(studentPaymentsModel.studentFeesId, studentFeesModel.studentFeesId)
-    )
-    .innerJoin(
       studentsModel,
-      eq(studentFeesModel.studentId, studentsModel.studentId)
+      eq(studentPaymentsModel.studentId, studentsModel.studentId)
     )
     .innerJoin(
       classesModel,
-      eq(studentsModel.classId, classesModel.classId)
+      eq(studentPaymentsModel.classId, classesModel.classId)
     )
     .innerJoin(
       sectionsModel,
-      eq(studentsModel.sectionId, sectionsModel.sectionId)
+      eq(studentPaymentsModel.sectionId, sectionsModel.sectionId)
+    )
+    .innerJoin(
+      sessionsModel,
+      eq(studentPaymentsModel.sessionId, sessionsModel.sessionId)
+    )
+    .leftJoin(
+      bankAccountModel,
+      eq(studentPaymentsModel.bankAccountId, bankAccountModel.bankAccountId)
     )
     .where(
       and(
