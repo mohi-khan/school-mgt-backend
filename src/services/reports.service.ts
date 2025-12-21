@@ -7,6 +7,7 @@ import {
   expenseModel,
   incomeHeadModel,
   incomeModel,
+  mfsModel,
   sectionsModel,
   sessionsModel,
   studentPaymentsModel,
@@ -31,7 +32,9 @@ export const studentPaymentReport = async (
       bankName: bankAccountModel.bankName,
       accountNumber: bankAccountModel.accountNumber,
       branch: bankAccountModel.branch,
-      phoneNumber: studentPaymentsModel.phoneNumber,
+      mfsName: mfsModel.accountName,
+      mfsNumber: mfsModel.mfsNumber,
+      mfsType: mfsModel.mfsType,
       paidAmount: studentPaymentsModel.paidAmount,
     })
     .from(studentPaymentsModel)
@@ -54,6 +57,10 @@ export const studentPaymentReport = async (
     .leftJoin(
       bankAccountModel,
       eq(studentPaymentsModel.bankAccountId, bankAccountModel.bankAccountId)
+    )
+    .leftJoin(
+      mfsModel,
+      eq(studentPaymentsModel.mfsId, mfsModel.mfsId)
     )
     .where(
       and(
