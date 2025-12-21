@@ -114,6 +114,18 @@ export const bankAccountModel = mysqlTable('bank_account', {
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
 
+export const mfsModel = mysqlTable('mfs', {
+  mfsId: int('mfs_id').primaryKey().autoincrement(),
+  accountName: varchar('account_name', { length: 100 }).notNull(),
+  mfsNumber: varchar('mfs_number', { length: 15 }).notNull(),
+  mfsType: mysqlEnum('mfs_type', ['Bkash', 'Nagad', 'Rocket']).notNull(),
+  balance: double('balance').notNull(),
+  createdBy: int('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedBy: int('updated_by'),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
+
 export const feesGroupModel = mysqlTable('fees_groups', {
   feesGroupId: int('fees_group_id').primaryKey().autoincrement(),
   groupName: varchar('group_name', { length: 100 }).notNull(),
@@ -611,6 +623,8 @@ export type Section = typeof sectionsModel.$inferSelect
 export type NewSection = typeof sectionsModel.$inferInsert
 export type BankAccount = typeof bankAccountModel.$inferInsert
 export type NewBankAccount = typeof bankAccountModel.$inferInsert
+export type Mfs = typeof mfsModel.$inferInsert
+export type NewMfs = typeof mfsModel.$inferInsert
 export type ClassSection = typeof classSectionsModel.$inferSelect
 export type NewClassSection = typeof classSectionsModel.$inferInsert
 export type FeesGroup = typeof feesGroupModel.$inferSelect

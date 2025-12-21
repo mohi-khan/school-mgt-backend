@@ -7,6 +7,7 @@ import feesTypeRoutes from './feesType.routes'
 import feesMasterRoutes from './feesMaster.routes'
 import sessionRoutes from './sessions.routes'
 import bankAccountsRoutes from './bankAccount.routes'
+import mfsRoutes from './mfs.routes'
 import studentsRoutes from './students.routes'
 import studentFeesRoutes from './student-fees.routes'
 import studentPromotionsRoutes from './studentPromotions.routes'
@@ -30,6 +31,7 @@ router.use('/fees-types', feesTypeRoutes)
 router.use('/fees-master', feesMasterRoutes)
 router.use('/sessions', sessionRoutes)
 router.use('/bank-accounts', bankAccountsRoutes)
+router.use('/mfs', mfsRoutes)
 router.use('/students', studentsRoutes)
 router.use('/student-fees', studentFeesRoutes)
 router.use('/student-promotions', studentPromotionsRoutes)

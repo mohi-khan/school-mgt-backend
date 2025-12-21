@@ -96,14 +96,14 @@ export const collectFees = async (payload: any | any[]) => {
       bankAccountId: bankAccountId || null,
       phoneNumber: phoneNumber || null,
       paymentDate: new Date(paymentDate),
-      paidAmount: finalPaidAmount,
+      paidAmount: paidAmount,
       remarks: remarks || null,
       createdAt: new Date(),
     })
 
     results.push({
       studentFeesId,
-      paidAmount: finalPaidAmount,
+      paidAmount: paidAmount,
       remainingAmount,
       status,
     })
@@ -137,6 +137,7 @@ export const getStudentFeesById = async (studentId: number) => {
       feesMasterId: studentFeesModel.feesMasterId,
       feesTypeId: feesMasterModel.feesTypeId,
       feesTypeName: feesTypeModel.typeName,
+      dueDate: feesMasterModel.dueDate,
     })
     .from(studentFeesModel)
     .leftJoin(
