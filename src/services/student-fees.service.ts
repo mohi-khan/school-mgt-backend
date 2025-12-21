@@ -10,71 +10,106 @@ import {
   studentsModel,
 } from '../schemas'
 
-export const collectFees = async (body: any) => {
-  const { studentFeesId, paidAmount, method, bankAccountId, phoneNumber, paymentDate, remarks } = body
+export const collectFees = async (payload: any | any[]) => {
+  const payments = Array.isArray(payload) ? payload : [payload]
 
-  if (!studentFeesId) throw new Error('studentFeesId is required')
-  if (!paidAmount || paidAmount <= 0) throw new Error('paidAmount is required')
-  if (!method) throw new Error('payment method is required')
-  if (!paymentDate) throw new Error('paymentDate is required')
+  const results = []
 
-  // Fetch current student fee record
-  const feeRecord = await db
-    .select({
-      amount: studentFeesModel.amount,
-      paidAmount: studentFeesModel.paidAmount,
-      remainingAmount: studentFeesModel.remainingAmount,
+  for (const body of payments) {
+    const {
+      studentFeesId,
+      studentId,
+      paidAmount,
+      method,
+      bankAccountId,
+      mfsId,
+      paymentDate,
+      remarks,
+    } = body
+
+    if (!studentFeesId) throw new Error('studentFeesId is required')
+    if (!method) throw new Error('payment method is required')
+    if (!paymentDate) throw new Error('paymentDate is required')
+
+    // Fetch fee record
+    const feeRecord = await db
+      .select({
+        amount: studentFeesModel.amount,
+        paidAmount: studentFeesModel.paidAmount,
+      })
+      .from(studentFeesModel)
+      .where(eq(studentFeesModel.studentFeesId, studentFeesId))
+      .then((res) => res[0])
+
+    if (!feeRecord) {
+      throw new Error(`Fee record not found for ID ${studentFeesId}`)
+    }
+
+    const student = await db
+      .select({
+        classId: studentsModel.classId,
+        sectionId: studentsModel.sectionId,
+        sessionId: studentsModel.sessionId,
+      })
+      .from(studentsModel)
+      .where(eq(studentsModel.studentId, studentId))
+      .then((res) => res[0])
+
+    if (!student) {
+      throw new Error(`Student not found for ID ${studentId}`)
+    }
+
+    const isBulk = Array.isArray(payload)
+
+    // 🧮 Calculation logic
+    const finalPaidAmount = isBulk
+      ? feeRecord.amount
+      : (feeRecord.paidAmount || 0) + paidAmount
+
+    if (!isBulk && finalPaidAmount > feeRecord.amount) {
+      throw new Error('Total paid amount cannot exceed total fee amount')
+    }
+
+    const remainingAmount = feeRecord.amount - finalPaidAmount
+    const status: 'Paid' | 'Partial' =
+      remainingAmount === 0 ? 'Paid' : 'Partial'
+
+    // 🔄 Update student_fees
+    await db
+      .update(studentFeesModel)
+      .set({
+        paidAmount: finalPaidAmount,
+        remainingAmount,
+        status,
+        updatedAt: new Date(),
+      })
+      .where(eq(studentFeesModel.studentFeesId, studentFeesId))
+
+    // ➕ Insert payment record
+    await db.insert(studentPaymentsModel).values({
+      studentFeesId,
+      studentId,
+      classId: student.classId,
+      sectionId: student.sectionId,
+      sessionId: student.sessionId,
+      method,
+      bankAccountId: bankAccountId || null,
+      mfsId: mfsId || null,
+      paymentDate: new Date(paymentDate),
+      paidAmount: paidAmount,
+      remarks: remarks || null,
+      createdAt: new Date(),
     })
-    .from(studentFeesModel)
-    .where(eq(studentFeesModel.studentFeesId, studentFeesId))
-    .then((res) => res[0])
 
-  if (!feeRecord) {
-    throw new Error(`Fee record not found for ID ${studentFeesId}`)
-  }
-
-  // Existing paid + new paid
-  const updatedPaidAmount = (feeRecord.paidAmount || 0) + paidAmount
-
-  if (updatedPaidAmount > feeRecord.amount) {
-    throw new Error(`Total paid amount cannot exceed total fee amount.`)
-  }
-
-  const newRemainingAmount = feeRecord.amount - updatedPaidAmount
-
-  // Auto-detect status
-  const newStatus: 'Paid' | 'Partial' =
-    newRemainingAmount === 0 ? 'Paid' : 'Partial'
-
-  // 🔄 Update student_fees
-  await db
-    .update(studentFeesModel)
-    .set({
-      paidAmount: updatedPaidAmount,
-      remainingAmount: newRemainingAmount,
-      status: newStatus,
-      updatedAt: new Date(),
+    results.push({
+      studentFeesId,
+      paidAmount: paidAmount,
+      remainingAmount,
+      status,
     })
-    .where(eq(studentFeesModel.studentFeesId, studentFeesId))
-
-  // ➕ Insert into student_payments
-  await db.insert(studentPaymentsModel).values({
-    studentFeesId,
-    method,
-    bankAccountId: bankAccountId || null,
-    phoneNumber: phoneNumber || null,
-    paymentDate: new Date(paymentDate),
-    paidAmount: updatedPaidAmount,
-    remarks: remarks || null,
-    createdAt: new Date(),
-  })
-
-  return {
-    studentFeesId,
-    paidAmount: updatedPaidAmount,
-    remainingAmount: newRemainingAmount,
-    status: newStatus,
   }
+
+  return Array.isArray(payload) ? results : results[0]
 }
 
 export const getStudentFeesById = async (studentId: number) => {
@@ -102,6 +137,7 @@ export const getStudentFeesById = async (studentId: number) => {
       feesMasterId: studentFeesModel.feesMasterId,
       feesTypeId: feesMasterModel.feesTypeId,
       feesTypeName: feesTypeModel.typeName,
+      dueDate: feesMasterModel.dueDate,
     })
     .from(studentFeesModel)
     .leftJoin(

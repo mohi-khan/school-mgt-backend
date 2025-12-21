@@ -86,6 +86,21 @@ export const sectionsModel = mysqlTable('sections', {
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
 
+export const classSectionsModel = mysqlTable('class_sections', {
+  classSectionId: int('class_section_id').primaryKey().autoincrement(),
+  classId: int('class_id').references(() => classesModel.classId, {
+    onDelete: 'set null',
+  }),
+  sectionId: int('section_id').references(() => sectionsModel.sectionId, {
+    onDelete: 'set null',
+  }),
+  roomNo: varchar('room_no', { length: 20 }),
+  classTeacherId: int('class_teacher_id'),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
+
 export const bankAccountModel = mysqlTable('bank_account', {
   bankAccountId: int('bank_account_id').autoincrement().primaryKey(),
   bankName: varchar('bank_name', { length: 100 }).notNull(),
@@ -99,18 +114,15 @@ export const bankAccountModel = mysqlTable('bank_account', {
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
 
-export const classSectionsModel = mysqlTable('class_sections', {
-  classSectionId: int('class_section_id').primaryKey().autoincrement(),
-  classId: int('class_id').references(() => classesModel.classId, {
-    onDelete: 'set null',
-  }),
-  sectionId: int('section_id').references(() => sectionsModel.sectionId, {
-    onDelete: 'set null',
-  }),
-  roomNo: varchar('room_no', { length: 20 }),
-  classTeacherId: int('class_teacher_id'),
-  isActive: boolean('is_active').default(true),
-  createdAt: timestamp('created_at').defaultNow(),
+export const mfsModel = mysqlTable('mfs', {
+  mfsId: int('mfs_id').primaryKey().autoincrement(),
+  accountName: varchar('account_name', { length: 100 }).notNull(),
+  mfsNumber: varchar('mfs_number', { length: 15 }).notNull(),
+  mfsType: mysqlEnum('mfs_type', ['bkash', 'nagad', 'rocket']).notNull(),
+  balance: double('balance').notNull(),
+  createdBy: int('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedBy: int('updated_by'),
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
 
@@ -233,6 +245,18 @@ export const studentPaymentsModel = mysqlTable('student_payments', {
       onDelete: 'set null',
     }
   ),
+  studentId: int('student_id').references(() => studentsModel.studentId, {
+    onDelete: 'set null',
+  }),
+  classId: int('class_id').references(() => classesModel.classId, {
+    onDelete: 'set null',
+  }),
+  sectionId: int('section_id').references(() => sectionsModel.sectionId, {
+    onDelete: 'set null',
+  }),
+  sessionId: int('session_id').references(() => sessionsModel.sessionId, {
+    onDelete: 'set null',
+  }),
   method: mysqlEnum('method', [
     'cash',
     'bank',
@@ -246,7 +270,9 @@ export const studentPaymentsModel = mysqlTable('student_payments', {
       onDelete: 'set null',
     }
   ),
-  phoneNumber: varchar('phone_number', { length: 14 }),
+  mfsId: int('mfs_id').references(() => mfsModel.mfsId, {
+    onDelete: 'set null',
+  }),
   paymentDate: date('payment_date').notNull(),
   paidAmount: double('paid_amount').notNull(),
   remarks: text('remarks'),
@@ -355,13 +381,13 @@ export const incomeHeadModel = mysqlTable('income_head', {
 
 export const incomeModel = mysqlTable('income', {
   incomeId: int('income_id').primaryKey().autoincrement(),
+  name: varchar('name', { length: 255 }).notNull(),
   incomeHeadId: int('income_head_id').references(
     () => incomeHeadModel.incomeHeadId,
     {
       onDelete: 'set null',
     }
   ),
-  name: varchar('name', { length: 255 }).notNull(),
   invoiceNumber: int('invoice_number').notNull(),
   date: date('date').notNull(),
   amount: double('amount').notNull(),
@@ -499,6 +525,30 @@ export const studentPaymentRelations = relations(
       fields: [studentPaymentsModel.studentFeesId],
       references: [studentFeesModel.studentFeesId],
     }),
+    class: one(classesModel, {
+      fields: [studentPaymentsModel.studentFeesId],
+      references: [classesModel.classId],
+    }),
+    section: one(sectionsModel, {
+      fields: [studentPaymentsModel.studentFeesId],
+      references: [sectionsModel.sectionId],
+    }),
+    session: one(sessionsModel, {
+      fields: [studentPaymentsModel.studentFeesId],
+      references: [sessionsModel.sessionId],
+    }),
+    student: one(studentsModel, {
+      fields: [studentPaymentsModel.studentId],
+      references: [studentsModel.studentId],
+    }),
+    bankAccount: one(bankAccountModel, {
+      fields: [studentPaymentsModel.bankAccountId],
+      references: [bankAccountModel.bankAccountId],
+    }),
+    mfs: one(mfsModel, {
+      fields: [studentPaymentsModel.mfsId],
+      references: [mfsModel.mfsId],
+    }),
   })
 )
 
@@ -587,6 +637,8 @@ export type Section = typeof sectionsModel.$inferSelect
 export type NewSection = typeof sectionsModel.$inferInsert
 export type BankAccount = typeof bankAccountModel.$inferInsert
 export type NewBankAccount = typeof bankAccountModel.$inferInsert
+export type Mfs = typeof mfsModel.$inferInsert
+export type NewMfs = typeof mfsModel.$inferInsert
 export type ClassSection = typeof classSectionsModel.$inferSelect
 export type NewClassSection = typeof classSectionsModel.$inferInsert
 export type FeesGroup = typeof feesGroupModel.$inferSelect

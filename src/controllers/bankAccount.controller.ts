@@ -24,7 +24,7 @@ export const createBankAccountController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'create_expense_head')
+    requirePermission(req, 'create_bank_account')
     const bankAccountData = createBankAccountSchema.parse(req.body)
     const bankAccount = await createBankAccount(bankAccountData)
 
@@ -43,7 +43,7 @@ export const getAllBankAccountsController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'view_expense_head')
+    requirePermission(req, 'view_bank_account')
     const bankAccounts = await getAllBankAccounts()
 
     res.status(200).json(bankAccounts)
@@ -58,7 +58,7 @@ export const getBankAccountController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'view_expense_head')
+    requirePermission(req, 'view_bank_account')
     const id = Number(req.params.id)
     const bankAccount = await getBankAccountById(id)
 
@@ -74,7 +74,7 @@ export const editBankAccountController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'edit_expense_head')
+    requirePermission(req, 'edit_bank_account')
     const id = Number(req.params.id)
     const bankAccountData = editBankAccountSchema.parse(req.body)
     const bankAccount = await editBankAccount(id, bankAccountData)
@@ -87,7 +87,7 @@ export const editBankAccountController = async (
 
 export const deleteBankAccountController = async (req: Request, res: Response) => {
   try {
-    requirePermission(req, 'delete_expense_head')
+    requirePermission(req, 'delete_bank_account')
     const bankAccountId = Number(req.params.id);
 
     const result = await deleteBankAccount(bankAccountId);

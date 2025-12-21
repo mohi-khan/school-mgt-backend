@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { authenticateUser } from "../middlewares/auth.middleware";
-import { getAllSectionssController } from "../controllers/sections.controller";
+import { getSectionsByClassIdController } from "../controllers/sections.controller";
 
 const router = Router();
 
-router.get("/getAll", authenticateUser,  getAllSectionssController);
+router.get("/getAll", authenticateUser,  getSectionsByClassIdController);
 
 export default router;
