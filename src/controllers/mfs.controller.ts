@@ -24,7 +24,7 @@ export const createMfsController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'create_expense_head')
+    requirePermission(req, 'create_mfs')
     const mfsData = createMfsSchema.parse(req.body)
     const mfs = await createMfs(mfsData)
 
@@ -43,7 +43,7 @@ export const getAllMfssController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'view_expense_head')
+    requirePermission(req, 'view_mfs')
     const mfss = await getAllMfss()
 
     res.status(200).json(mfss)
@@ -58,7 +58,7 @@ export const getMfsController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'view_expense_head')
+    requirePermission(req, 'view_mfs')
     const id = Number(req.params.id)
     const mfs = await getMfsById(id)
 
@@ -74,9 +74,10 @@ export const editMfsController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'edit_expense_head')
+    requirePermission(req, 'edit_mfs')
     const id = Number(req.params.id)
     const mfsData = editMfsSchema.parse(req.body)
+    console.log("🚀 ~ editMfsController ~ mfsData:", mfsData)
     const mfs = await editMfs(id, mfsData)
 
     res.status(200).json(mfs)
@@ -87,7 +88,7 @@ export const editMfsController = async (
 
 export const deleteMfsController = async (req: Request, res: Response) => {
   try {
-    requirePermission(req, 'delete_expense_head')
+    requirePermission(req, 'delete_mfs')
     const mfsId = Number(req.params.id);
 
     const result = await deleteMfs(mfsId);

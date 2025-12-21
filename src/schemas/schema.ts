@@ -118,7 +118,7 @@ export const mfsModel = mysqlTable('mfs', {
   mfsId: int('mfs_id').primaryKey().autoincrement(),
   accountName: varchar('account_name', { length: 100 }).notNull(),
   mfsNumber: varchar('mfs_number', { length: 15 }).notNull(),
-  mfsType: mysqlEnum('mfs_type', ['Bkash', 'Nagad', 'Rocket']).notNull(),
+  mfsType: mysqlEnum('mfs_type', ['bkash', 'nagad', 'rocket']).notNull(),
   balance: double('balance').notNull(),
   createdBy: int('created_by').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -270,7 +270,9 @@ export const studentPaymentsModel = mysqlTable('student_payments', {
       onDelete: 'set null',
     }
   ),
-  phoneNumber: varchar('phone_number', { length: 14 }),
+  mfsId: int('mfs_id').references(() => mfsModel.mfsId, {
+    onDelete: 'set null',
+  }),
   paymentDate: date('payment_date').notNull(),
   paidAmount: double('paid_amount').notNull(),
   remarks: text('remarks'),
@@ -534,6 +536,18 @@ export const studentPaymentRelations = relations(
     session: one(sessionsModel, {
       fields: [studentPaymentsModel.studentFeesId],
       references: [sessionsModel.sessionId],
+    }),
+    student: one(studentsModel, {
+      fields: [studentPaymentsModel.studentId],
+      references: [studentsModel.studentId],
+    }),
+    bankAccount: one(bankAccountModel, {
+      fields: [studentPaymentsModel.bankAccountId],
+      references: [bankAccountModel.bankAccountId],
+    }),
+    mfs: one(mfsModel, {
+      fields: [studentPaymentsModel.mfsId],
+      references: [mfsModel.mfsId],
     }),
   })
 )

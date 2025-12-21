@@ -22,7 +22,7 @@ export const collectFees = async (payload: any | any[]) => {
       paidAmount,
       method,
       bankAccountId,
-      phoneNumber,
+      mfsId,
       paymentDate,
       remarks,
     } = body
@@ -94,7 +94,7 @@ export const collectFees = async (payload: any | any[]) => {
       sessionId: student.sessionId,
       method,
       bankAccountId: bankAccountId || null,
-      phoneNumber: phoneNumber || null,
+      mfsId: mfsId || null,
       paymentDate: new Date(paymentDate),
       paidAmount: paidAmount,
       remarks: remarks || null,

@@ -1,19 +1,19 @@
-import { Router } from "express";
+import { Router } from 'express'
 import {
-  createMfsController,
-  deleteMfsController,
-  editMfsController,
-  getAllMfssController,
-  getMfsController,
-} from "../controllers/mfs.controller";
-import { authenticateUser } from "../middlewares/auth.middleware";
+  createBankAccountController,
+  deleteBankAccountController,
+  editBankAccountController,
+  getAllBankAccountsController,
+  getBankAccountController,
+} from '../controllers/bankAccount.controller'
+import { authenticateUser } from '../middlewares/auth.middleware'
 
-const router = Router();
+const router = Router()
 
-router.post("/create", authenticateUser,  createMfsController);
-router.get("/getAll", authenticateUser,  getAllMfssController);
-router.get("/getById/:id", authenticateUser, getMfsController);
-router.patch("/edit/:id", authenticateUser, editMfsController);
-router.delete("/delete/:id", authenticateUser, deleteMfsController);
+router.post('/create', authenticateUser, createBankAccountController)
+router.get('/getAll', authenticateUser, getAllBankAccountsController)
+router.get('/getById/:id', authenticateUser, getBankAccountController)
+router.patch('/edit/:id', authenticateUser, editBankAccountController)
+router.delete('/delete/:id', authenticateUser, deleteBankAccountController)
 
-export default router;
+export default router
