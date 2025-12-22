@@ -58,12 +58,151 @@ export const studentPaymentReport = async (
       bankAccountModel,
       eq(studentPaymentsModel.bankAccountId, bankAccountModel.bankAccountId)
     )
+    .leftJoin(mfsModel, eq(studentPaymentsModel.mfsId, mfsModel.mfsId))
+    .where(
+      and(
+        gte(studentPaymentsModel.paymentDate, new Date(fromDate)),
+        lte(studentPaymentsModel.paymentDate, new Date(toDate))
+      )
+    )
+    .orderBy(studentPaymentsModel.paymentDate)
+}
+
+export const studentBankPaymentReport = async (
+  fromDate: string,
+  toDate: string
+) => {
+  return await db
+    .select({
+      studentPaymentId: studentPaymentsModel.studentPaymentId,
+      paymentDate: studentPaymentsModel.paymentDate,
+      studentName: sql<string>`
+        CONCAT(${studentsModel.firstName}, ' ', ${studentsModel.lastName})
+      `.as('studentName'),
+      studentClass: classesModel.className,
+      studentSection: sectionsModel.sectionName,
+      studentSession: sessionsModel.sessionName,
+      bankName: bankAccountModel.bankName,
+      accountNumber: bankAccountModel.accountNumber,
+      branch: bankAccountModel.branch,
+      paidAmount: studentPaymentsModel.paidAmount,
+    })
+    .from(studentPaymentsModel)
+    .innerJoin(
+      studentsModel,
+      eq(studentPaymentsModel.studentId, studentsModel.studentId)
+    )
+    .innerJoin(
+      classesModel,
+      eq(studentPaymentsModel.classId, classesModel.classId)
+    )
+    .innerJoin(
+      sectionsModel,
+      eq(studentPaymentsModel.sectionId, sectionsModel.sectionId)
+    )
+    .innerJoin(
+      sessionsModel,
+      eq(studentPaymentsModel.sessionId, sessionsModel.sessionId)
+    )
     .leftJoin(
-      mfsModel,
-      eq(studentPaymentsModel.mfsId, mfsModel.mfsId)
+      bankAccountModel,
+      eq(studentPaymentsModel.bankAccountId, bankAccountModel.bankAccountId)
     )
     .where(
       and(
+        eq(studentPaymentsModel.method, 'bank'),
+        gte(studentPaymentsModel.paymentDate, new Date(fromDate)),
+        lte(studentPaymentsModel.paymentDate, new Date(toDate))
+      )
+    )
+    .orderBy(studentPaymentsModel.paymentDate)
+}
+
+export const studentMfsPaymentReport = async (
+  fromDate: string,
+  toDate: string
+) => {
+  return await db
+    .select({
+      studentPaymentId: studentPaymentsModel.studentPaymentId,
+      paymentDate: studentPaymentsModel.paymentDate,
+      studentName: sql<string>`
+        CONCAT(${studentsModel.firstName}, ' ', ${studentsModel.lastName})
+      `.as('studentName'),
+      studentClass: classesModel.className,
+      studentSection: sectionsModel.sectionName,
+      studentSession: sessionsModel.sessionName,
+      method: studentPaymentsModel.method,
+      mfsName: mfsModel.accountName,
+      mfsNumber: mfsModel.mfsNumber,
+      mfsType: mfsModel.mfsType,
+      paidAmount: studentPaymentsModel.paidAmount,
+    })
+    .from(studentPaymentsModel)
+    .innerJoin(
+      studentsModel,
+      eq(studentPaymentsModel.studentId, studentsModel.studentId)
+    )
+    .innerJoin(
+      classesModel,
+      eq(studentPaymentsModel.classId, classesModel.classId)
+    )
+    .innerJoin(
+      sectionsModel,
+      eq(studentPaymentsModel.sectionId, sectionsModel.sectionId)
+    )
+    .innerJoin(
+      sessionsModel,
+      eq(studentPaymentsModel.sessionId, sessionsModel.sessionId)
+    )
+    .leftJoin(mfsModel, eq(studentPaymentsModel.mfsId, mfsModel.mfsId))
+    .where(
+      and(
+        sql`${studentPaymentsModel.method} IN ('bkash', 'nagad', 'rocket')`,
+        gte(studentPaymentsModel.paymentDate, new Date(fromDate)),
+        lte(studentPaymentsModel.paymentDate, new Date(toDate))
+      )
+    )
+    .orderBy(studentPaymentsModel.paymentDate)
+}
+
+export const studentCashPaymentReport = async (
+  fromDate: string,
+  toDate: string
+) => {
+  return await db
+    .select({
+      studentPaymentId: studentPaymentsModel.studentPaymentId,
+      paymentDate: studentPaymentsModel.paymentDate,
+      studentName: sql<string>`
+        CONCAT(${studentsModel.firstName}, ' ', ${studentsModel.lastName})
+      `.as('studentName'),
+      studentClass: classesModel.className,
+      studentSection: sectionsModel.sectionName,
+      studentSession: sessionsModel.sessionName,
+      paidAmount: studentPaymentsModel.paidAmount,
+    })
+    .from(studentPaymentsModel)
+    .innerJoin(
+      studentsModel,
+      eq(studentPaymentsModel.studentId, studentsModel.studentId)
+    )
+    .innerJoin(
+      classesModel,
+      eq(studentPaymentsModel.classId, classesModel.classId)
+    )
+    .innerJoin(
+      sectionsModel,
+      eq(studentPaymentsModel.sectionId, sectionsModel.sectionId)
+    )
+    .innerJoin(
+      sessionsModel,
+      eq(studentPaymentsModel.sessionId, sessionsModel.sessionId)
+    )
+    .leftJoin(mfsModel, eq(studentPaymentsModel.mfsId, mfsModel.mfsId))
+    .where(
+      and(
+        eq(studentPaymentsModel.method, 'cash'),
         gte(studentPaymentsModel.paymentDate, new Date(fromDate)),
         lte(studentPaymentsModel.paymentDate, new Date(toDate))
       )
