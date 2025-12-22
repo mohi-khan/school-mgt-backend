@@ -427,6 +427,29 @@ export const expenseModel = mysqlTable('expense', {
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
 
+export const bankToBankConversionModel = mysqlTable('bank_to_bank_conversion', {
+  conversionId: int('conversion_id').primaryKey().autoincrement(),
+  fromBankAccountId: int('from_bank_account_id').references(
+    () => bankAccountModel.bankAccountId,
+    {
+      onDelete: 'set null',
+    }
+  ),
+  toBankAccountId: int('to_bank_account_id').references(
+    () => bankAccountModel.bankAccountId,
+    {
+      onDelete: 'set null',
+    }
+  ),
+  amount: double('amount').notNull(),
+  date: date('date').notNull(),
+  description: text('description'),
+  createdBy: int('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedBy: int('updated_by'),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
+
 // ========================
 // Relations
 // ========================
@@ -621,6 +644,20 @@ export const expenseRelations = relations(expenseModel, ({ one }) => ({
   }),
 }))
 
+export const bankToBankConversionRelations = relations(
+  bankToBankConversionModel,
+  ({ one }) => ({
+    fromBankAccount: one(bankAccountModel, {
+      fields: [bankToBankConversionModel.fromBankAccountId],
+      references: [bankAccountModel.bankAccountId],
+    }),
+    toBankAccount: one(bankAccountModel, {
+      fields: [bankToBankConversionModel.toBankAccountId],
+      references: [bankAccountModel.bankAccountId],
+    }),
+  })
+)
+
 export type User = typeof userModel.$inferSelect
 export type NewUser = typeof userModel.$inferInsert
 export type Role = typeof roleModel.$inferSelect
@@ -635,6 +672,8 @@ export type Classes = typeof classesModel.$inferSelect
 export type NewClasses = typeof classesModel.$inferInsert
 export type Section = typeof sectionsModel.$inferSelect
 export type NewSection = typeof sectionsModel.$inferInsert
+export type Session = typeof sessionsModel.$inferSelect
+export type NewSession = typeof sessionsModel.$inferInsert
 export type BankAccount = typeof bankAccountModel.$inferInsert
 export type NewBankAccount = typeof bankAccountModel.$inferInsert
 export type Mfs = typeof mfsModel.$inferInsert
@@ -669,3 +708,6 @@ export type ExpenseHead = typeof expenseHeadModel.$inferInsert
 export type NewExpenseHead = typeof expenseHeadModel.$inferInsert
 export type Expense = typeof expenseModel.$inferInsert
 export type NewExpense = typeof expenseModel.$inferInsert
+export type BankToBankConversion = typeof bankToBankConversionModel.$inferInsert
+export type NewBankToBankConversion =
+  typeof bankToBankConversionModel.$inferInsert
