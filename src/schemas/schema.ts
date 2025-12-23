@@ -427,20 +427,26 @@ export const expenseModel = mysqlTable('expense', {
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
 
-export const bankToBankConversionModel = mysqlTable('bank_to_bank_conversion', {
-  conversionId: int('conversion_id').primaryKey().autoincrement(),
+export const bankMFsCashModel = mysqlTable('bank_mfs_cash', {
+  id: int('id').primaryKey().autoincrement(),
   fromBankAccountId: int('from_bank_account_id').references(
     () => bankAccountModel.bankAccountId,
     {
       onDelete: 'set null',
     }
   ),
+  fromMfsId: int('from_mfs_id').references(() => mfsModel.mfsId, {
+    onDelete: 'set null',
+  }),
   toBankAccountId: int('to_bank_account_id').references(
     () => bankAccountModel.bankAccountId,
     {
       onDelete: 'set null',
     }
   ),
+  toMfsId: int('to_mfs_id').references(() => mfsModel.mfsId, {
+    onDelete: 'set null',
+  }),
   amount: double('amount').notNull(),
   date: date('date').notNull(),
   description: text('description'),
@@ -645,14 +651,14 @@ export const expenseRelations = relations(expenseModel, ({ one }) => ({
 }))
 
 export const bankToBankConversionRelations = relations(
-  bankToBankConversionModel,
+  bankMFsCashModel,
   ({ one }) => ({
     fromBankAccount: one(bankAccountModel, {
-      fields: [bankToBankConversionModel.fromBankAccountId],
+      fields: [bankMFsCashModel.fromBankAccountId],
       references: [bankAccountModel.bankAccountId],
     }),
     toBankAccount: one(bankAccountModel, {
-      fields: [bankToBankConversionModel.toBankAccountId],
+      fields: [bankMFsCashModel.toBankAccountId],
       references: [bankAccountModel.bankAccountId],
     }),
   })
@@ -708,6 +714,6 @@ export type ExpenseHead = typeof expenseHeadModel.$inferInsert
 export type NewExpenseHead = typeof expenseHeadModel.$inferInsert
 export type Expense = typeof expenseModel.$inferInsert
 export type NewExpense = typeof expenseModel.$inferInsert
-export type BankToBankConversion = typeof bankToBankConversionModel.$inferInsert
-export type NewBankToBankConversion =
-  typeof bankToBankConversionModel.$inferInsert
+export type BankMfsCash = typeof bankMFsCashModel.$inferInsert
+export type NewBankMfsCash =
+  typeof bankMFsCashModel.$inferInsert
