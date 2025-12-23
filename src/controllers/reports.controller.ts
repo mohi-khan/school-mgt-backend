@@ -1,5 +1,13 @@
 import { Request, Response } from 'express'
-import { expenseReport, incomeReport, studentBankPaymentReport, studentCashPaymentReport, studentMfsPaymentReport, studentPaymentReport } from '../services/reports.service'
+import {
+  expenseReport,
+  getTransactionReport,
+  incomeReport,
+  studentBankPaymentReport,
+  studentCashPaymentReport,
+  studentMfsPaymentReport,
+  studentPaymentReport,
+} from '../services/reports.service'
 import { requirePermission } from '../services/utils/jwt.utils'
 
 export const studentPaymentReportController = async (
@@ -148,6 +156,27 @@ export const expenseReportController = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch expense report',
+    })
+  }
+}
+
+export const transactionReportController = async (req: Request, res: Response) => {
+  try {
+    const { fromDate, toDate } = req.query
+
+    if (!fromDate || !toDate) {
+      res.status(400).json({
+        message: 'fromDate and toDate are required',
+      })
+    }
+
+    const data = await getTransactionReport(fromDate as string, toDate as string)
+
+    res.status(200).json(data)
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
     })
   }
 }

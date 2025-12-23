@@ -19,7 +19,7 @@ import incomeHeadRoutes from './incomeHead.routes'
 import incomeRoutes from './income.routes'
 import expenseHeadRoutes from './expenseHead.routes'
 import expenseRoutes from './expense.routes'
-import bankToBankConversionsRoutes from './bankToBankConversion.routes'
+import bankMfsCashRoutes from './bankMfsCash.routes'
 import reportsRoutes from './reports.routes'
 
 const router = Router()
@@ -44,7 +44,7 @@ router.use('/income-heads', incomeHeadRoutes)
 router.use('/incomes', incomeRoutes)
 router.use('/expense-heads', expenseHeadRoutes)
 router.use('/expenses', expenseRoutes)
-router.use('/bank-to-bank-conversions', bankToBankConversionsRoutes)
+router.use('/bank-mfs-cash', bankMfsCashRoutes)
 router.use('/reports', reportsRoutes)
 
 export default router

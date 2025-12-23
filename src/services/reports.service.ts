@@ -263,3 +263,85 @@ export const expenseReport = async (fromDate: string, toDate: string) => {
 
   return result
 }
+
+export const getTransactionReport = async (
+  fromDate: string,
+  toDate: string
+) => {
+  const query = sql`
+(
+  -- CONTRA
+  SELECT
+    FLOOR(RAND() * 1000000000) AS id,
+    bmc.date AS date,
+    'contra' AS particulars,
+    bmc.description AS remarks,
+    CASE
+      WHEN bmc.to_bank_account_id IS NOT NULL OR bmc.to_mfs_id IS NOT NULL
+        THEN bmc.amount
+      ELSE 0
+    END AS deposit,
+    CASE
+      WHEN bmc.from_bank_account_id IS NOT NULL OR bmc.from_mfs_id IS NOT NULL
+        THEN bmc.amount
+      ELSE 0
+    END AS withdraw,
+    bmc.id AS reference
+  FROM bank_mfs_cash bmc
+  WHERE bmc.date BETWEEN ${fromDate} AND ${toDate}
+)
+
+UNION ALL
+
+(
+  -- EXPENSE
+  SELECT
+    FLOOR(RAND() * 1000000000) AS id,
+    e.date AS date,
+    'expense' AS particulars,
+    e.name AS remarks,
+    0 AS deposit,
+    e.amount AS withdraw,
+    e.expense_id AS reference
+  FROM expense e
+  WHERE e.date BETWEEN ${fromDate} AND ${toDate}
+)
+
+UNION ALL
+
+(
+  -- STUDENT PAYMENTS (RECEIPT)
+  SELECT
+    FLOOR(RAND() * 1000000000) AS id,
+    sp.payment_date AS date,
+    'receipt' AS particulars,
+    sp.remarks AS remarks,
+    sp.paid_amount AS deposit,
+    0 AS withdraw,
+    sp.studnet_payment_id AS reference
+  FROM student_payments sp
+  WHERE sp.payment_date BETWEEN ${fromDate} AND ${toDate}
+)
+
+UNION ALL
+
+(
+  -- INCOME (RECEIPT)
+  SELECT
+    FLOOR(RAND() * 1000000000) AS id,
+    i.date AS date,
+    'receipt' AS particulars,
+    CONCAT(i.description, ' | Income') AS remarks,
+    i.amount AS deposit,
+    0 AS withdraw,
+    i.income_id AS reference
+  FROM income i
+  WHERE i.date BETWEEN ${fromDate} AND ${toDate}
+)
+
+ORDER BY date ASC
+`
+
+  const result = await db.execute(query)
+  return result[0]
+}
