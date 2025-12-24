@@ -21,6 +21,7 @@ import expenseHeadRoutes from './expenseHead.routes'
 import expenseRoutes from './expense.routes'
 import bankMfsCashRoutes from './bankMfsCash.routes'
 import reportsRoutes from './reports.routes'
+import dashboardRoutes from './dashboard.routes'
 
 const router = Router()
 
@@ -46,5 +47,6 @@ router.use('/expense-heads', expenseHeadRoutes)
 router.use('/expenses', expenseRoutes)
 router.use('/bank-mfs-cash', bankMfsCashRoutes)
 router.use('/reports', reportsRoutes)
+router.use('/dashboard', dashboardRoutes)
 
 export default router
