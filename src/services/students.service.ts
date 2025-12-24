@@ -159,6 +159,112 @@ export const createStudent = async (data: {
   })
 }
 
+// students.service.ts
+export const updateStudentWithFees = async (data: {
+  studentId: number
+  studentDetails: any
+  studentFees: { feesMasterId: number }[]
+}) => {
+  return await db.transaction(async (tx) => {
+    const { studentId, studentDetails, studentFees } = data
+
+    // Ensure student exists
+    const existingStudent = await tx.query.studentsModel.findFirst({
+      where: eq(studentsModel.studentId, studentId),
+    })
+
+    if (!existingStudent) {
+      throw new Error('Student not found')
+    }
+
+    // Update student table
+    await tx
+      .update(studentsModel)
+      .set({
+        admissionNo: studentDetails.admissionNo,
+        rollNo: studentDetails.rollNo,
+        classId: studentDetails.classId ?? null,
+        sectionId: studentDetails.sectionId ?? null,
+        sessionId: studentDetails.sessionId ?? null,
+        firstName: studentDetails.firstName,
+        lastName: studentDetails.lastName,
+        gender: studentDetails.gender,
+        dateOfBirth: studentDetails.dateOfBirth
+          ? new Date(studentDetails.dateOfBirth)
+          : undefined,
+        religion: studentDetails.religion ?? null,
+        bloodGroup: studentDetails.bloodGroup ?? null,
+        height: studentDetails.height ?? null,
+        weight: studentDetails.weight ?? null,
+        address: studentDetails.address ?? null,
+        phoneNumber: studentDetails.phoneNumber,
+        email: studentDetails.email,
+        admissionDate: studentDetails.admissionDate
+          ? new Date(studentDetails.admissionDate)
+          : undefined,
+        photoUrl: studentDetails.photoUrl ?? existingStudent.photoUrl,
+        isActive: studentDetails.isActive ?? existingStudent.isActive,
+        fatherName: studentDetails.fatherName ?? null,
+        fatherPhone: studentDetails.fatherPhone,
+        fatherEmail: studentDetails.fatherEmail,
+        fatherOccupation: studentDetails.fatherOccupation ?? null,
+        fatherPhotoUrl:
+          studentDetails.fatherPhotoUrl ?? existingStudent.fatherPhotoUrl,
+        motherName: studentDetails.motherName ?? null,
+        motherPhone: studentDetails.motherPhone,
+        motherEmail: studentDetails.motherEmail,
+        motherOccupation: studentDetails.motherOccupation ?? null,
+        motherPhotoUrl:
+          studentDetails.motherPhotoUrl ?? existingStudent.motherPhotoUrl,
+        updatedAt: new Date(),
+      })
+      .where(eq(studentsModel.studentId, studentId))
+
+    // 🔥 Reset fees (simple & safe approach)
+    await tx
+      .delete(studentFeesModel)
+      .where(eq(studentFeesModel.studentId, studentId))
+
+    if (studentFees.length > 0) {
+      const feesMasterIds = studentFees.map((f) => f.feesMasterId)
+
+      const feesMasterList = await tx
+        .select({
+          id: feesMasterModel.feesMasterId,
+          amount: feesMasterModel.amount,
+        })
+        .from(feesMasterModel)
+        .where(inArray(feesMasterModel.feesMasterId, feesMasterIds))
+
+      const feesData = studentFees.map((f) => {
+        const fm = feesMasterList.find((x) => x.id === f.feesMasterId)
+        if (!fm) {
+          throw new Error(`Invalid feesMasterId: ${f.feesMasterId}`)
+        }
+
+        return {
+          studentId,
+          feesMasterId: f.feesMasterId,
+          amount: fm.amount,
+          paidAmount: 0,
+          remainingAmount: fm.amount,
+          status: 'Unpaid' as const,
+        }
+      })
+
+      await tx.insert(studentFeesModel).values(feesData)
+    }
+
+    // Return updated student
+    const updatedStudent = await tx.query.studentsModel.findFirst({
+      where: eq(studentsModel.studentId, studentId),
+      with: { studentFees: true },
+    })
+
+    return updatedStudent
+  })
+}
+
 export async function getAllStudents(
   classId?: number | null,
   sectionId?: number | null
