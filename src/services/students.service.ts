@@ -64,18 +64,14 @@ export type CreateStudentWithFiles = {
 // students.service.ts
 export const createStudent = async (data: {
   studentDetails: any
-  studentFees: { studentId: number | null; feesMasterId: number }[]
+  studentFees: { studentId: number | null; feesMasterId: number, amount?: number }[]
 }) => {
   return await db.transaction(async (tx) => {
     // Validate required fields
-    if (!data.studentDetails.admissionNo) {
-      throw new Error('admissionNo is required')
-    }
-    if (!data.studentDetails.rollNo) {
-      throw new Error('rollNo is required')
-    }
+    if (!data.studentDetails.admissionNo) throw new Error('admissionNo is required')
+    if (!data.studentDetails.rollNo) throw new Error('rollNo is required')
 
-    // Insert student with explicit field mapping
+    // Insert student
     const [inserted] = await tx
       .insert(studentsModel)
       .values({
@@ -89,7 +85,7 @@ export const createStudent = async (data: {
         gender: data.studentDetails.gender,
         dateOfBirth: data.studentDetails.dateOfBirth
           ? new Date(data.studentDetails.dateOfBirth)
-          : new Date(), // fallback to current date if not provided
+          : new Date(),
         religion: data.studentDetails.religion ?? null,
         bloodGroup: data.studentDetails.bloodGroup ?? null,
         height: data.studentDetails.height ?? null,
@@ -149,15 +145,15 @@ export const createStudent = async (data: {
       await tx.insert(studentFeesModel).values(feesData)
     }
 
-    // Fetch & return complete student with fees
+    // Fetch & return student with fees
     const student = await tx.query.studentsModel.findFirst({
       where: eq(studentsModel.studentId, studentId),
       with: { studentFees: true },
     })
-
     return student
   })
 }
+
 
 // students.service.ts
 export const updateStudentWithFees = async (data: {

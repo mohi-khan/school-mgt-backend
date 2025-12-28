@@ -11,53 +11,47 @@ import {
 export const createStudentController = async (req: Request, res: Response) => {
   try {
     requirePermission(req, 'create_student')
-    console.log('📥 Received files:', req.files)
-    console.log('📥 Received body:', req.body)
 
-    // Parse the JSON strings from FormData
-    const studentDetails = JSON.parse(req.body.studentDetails)
-    const studentFees = JSON.parse(req.body.studentFees)
-
-    console.log('🧾 Parsed studentDetails:', studentDetails)
-    console.log('💰 Parsed studentFees:', studentFees)
-
-    if (!studentDetails || !studentFees) {
-      res.status(400).json({
-        error: 'Student data is required',
-        receivedFields: Object.keys(req.body),
-      })
-    }
-
-    // Handle file uploads and update photo URLs with full path
     const files = req.files as { [fieldname: string]: Express.Multer.File[] }
     const baseUrl = `${req.protocol}://${req.get('host')}/uploads/`
 
-    if (files?.photoUrl?.[0]) {
-      studentDetails.photoUrl = `${baseUrl}${files.photoUrl[0].filename}`
-      console.log(`✅ Student photo URL: ${studentDetails.photoUrl}`)
-    }
-    if (files?.fatherPhotoUrl?.[0]) {
-      studentDetails.fatherPhotoUrl = `${baseUrl}${files.fatherPhotoUrl[0].filename}`
-      console.log(`✅ Father photo URL: ${studentDetails.fatherPhotoUrl}`)
-    }
-    if (files?.motherPhotoUrl?.[0]) {
-      studentDetails.motherPhotoUrl = `${baseUrl}${files.motherPhotoUrl[0].filename}`
-      console.log(`✅ Mother photo URL: ${studentDetails.motherPhotoUrl}`)
+    // Normalize input to array
+    const payload = Array.isArray(req.body) ? req.body : [req.body]
+
+    const results = []
+    for (let item of payload) {
+      // Parse studentDetails & studentFees if sent as JSON strings
+      let studentDetails =
+        typeof item.studentDetails === 'string'
+          ? JSON.parse(item.studentDetails)
+          : item.studentDetails
+      let studentFees =
+        typeof item.studentFees === 'string'
+          ? JSON.parse(item.studentFees)
+          : item.studentFees
+
+      // Handle uploaded photos (if any)
+      if (files?.photoUrl?.[0])
+        studentDetails.photoUrl = `${baseUrl}${files.photoUrl[0].filename}`
+      if (files?.fatherPhotoUrl?.[0])
+        studentDetails.fatherPhotoUrl = `${baseUrl}${files.fatherPhotoUrl[0].filename}`
+      if (files?.motherPhotoUrl?.[0])
+        studentDetails.motherPhotoUrl = `${baseUrl}${files.motherPhotoUrl[0].filename}`
+
+      const student = await createStudent({ studentDetails, studentFees })
+      results.push(student)
     }
 
-    const data = {
-      studentDetails,
-      studentFees,
-    }
-
-    const createdStudent = await createStudent(data)
-
-    res.json({ success: true, data: createdStudent })
-  } catch (err) {
-    console.error('❌ Student creation error:', err)
-    if (!res.headersSent) {
-      res.status(500).json({ error: 'Internal server error' })
-    }
+    res.status(200).json({
+      success: true,
+      data: Array.isArray(req.body) ? results : results[0],
+    })
+  } catch (error: any) {
+    console.error('❌ Student creation error:', error)
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Something went wrong',
+    })
   }
 }
 
