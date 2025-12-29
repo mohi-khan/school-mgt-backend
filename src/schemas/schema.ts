@@ -362,6 +362,12 @@ export const examResultModel = mysqlTable('exam_results', {
       onDelete: 'set null',
     }
   ),
+  classId: int('class_id').references(() => classesModel.classId, {
+    onDelete: 'set null'
+  }),
+  sectionId: int('section_id').references(() => sectionsModel.sectionId, {
+    onDelete: 'set null'
+  }),
   gainedMarks: int('gained_marks').notNull(),
   createdBy: int('created_by').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
