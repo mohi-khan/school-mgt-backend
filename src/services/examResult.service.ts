@@ -1,10 +1,12 @@
 import { eq, sql } from 'drizzle-orm'
 import { db } from '../config/database'
 import {
+  classesModel,
   examResultModel,
   examsModel,
   examSubjectsModel,
   NewExamResult,
+  sectionsModel,
   sessionsModel,
   studentsModel,
 } from '../schemas'
@@ -36,20 +38,24 @@ export const getAllExamResults = async () => {
     .select({
       examResultId: examResultModel.examResultId,
       sessionId: examResultModel.sessionId,
+      sessionName: sessionsModel.sessionName,
       examId: examResultModel.examId,
+      examName: examsModel.examName,
       studentId: examResultModel.studentId,
+      studentName: sql<string>`
+        CONCAT(${studentsModel.firstName}, ' ', ${studentsModel.lastName})
+      `.as('student_name'),
       examSubjectId: examResultModel.examSubjectId,
       gainedMarks: examResultModel.gainedMarks,
       createdBy: examResultModel.createdBy,
       createdAt: examResultModel.createdAt,
       updatedBy: examResultModel.updatedBy,
       updatedAt: examResultModel.updatedAt,
-      sessionName: sessionsModel.sessionName,
-      examName: examsModel.examName,
-      studentName: sql<string>`
-        CONCAT(${studentsModel.firstName}, ' ', ${studentsModel.lastName})
-      `.as('student_name'),
       examSubjectName: examSubjectsModel.subjectName,
+      classId: examResultModel.classId,
+      className: classesModel.className,
+      sectionId: examResultModel.sectionId,
+      sectionName: sectionsModel.sectionName,
     })
     .from(examResultModel)
     .leftJoin(
@@ -64,6 +70,14 @@ export const getAllExamResults = async () => {
     .leftJoin(
       examSubjectsModel,
       eq(examResultModel.examSubjectId, examSubjectsModel.examSubjectId)
+    )
+    .leftJoin(
+      classesModel,
+      eq(studentsModel.classId, classesModel.classId)
+    )
+    .leftJoin(
+      sectionsModel,
+      eq(studentsModel.sectionId, sectionsModel.sectionId)
     )
 }
 
