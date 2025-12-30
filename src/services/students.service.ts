@@ -8,6 +8,7 @@ import {
   sectionsModel,
   sessionsModel,
   studentFeesModel,
+  studentPaymentsModel,
   studentsModel,
 } from '../schemas'
 
@@ -415,6 +416,9 @@ export async function getStudentById(studentId: number) {
       remainingAmount: studentFeesModel.remainingAmount,
       status: studentFeesModel.status,
       dueDate: feesMasterModel.dueDate,
+      paymentMethod: studentPaymentsModel.method,
+      paymentDate: studentPaymentsModel.paymentDate,
+      paymentRemarks: studentPaymentsModel.remarks,
     })
     .from(studentFeesModel)
     .leftJoin(
@@ -428,6 +432,10 @@ export async function getStudentById(studentId: number) {
     .leftJoin(
       feesTypeModel,
       eq(feesMasterModel.feesTypeId, feesTypeModel.feesTypeId)
+    )
+    .leftJoin(
+      studentPaymentsModel,
+      eq(studentFeesModel.studentFeesId, studentPaymentsModel.studentFeesId)
     )
     .where(eq(studentFeesModel.studentId, studentId))
 
