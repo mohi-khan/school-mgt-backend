@@ -138,6 +138,9 @@ export const getStudentFeesById = async (studentId: number) => {
       feesTypeId: feesMasterModel.feesTypeId,
       feesTypeName: feesTypeModel.typeName,
       dueDate: feesMasterModel.dueDate,
+      paymentMethod: studentPaymentsModel.method,
+      paymentDate: studentPaymentsModel.paymentDate,
+      paymentRemarks: studentPaymentsModel.remarks,
     })
     .from(studentFeesModel)
     .leftJoin(
@@ -156,6 +159,10 @@ export const getStudentFeesById = async (studentId: number) => {
     .leftJoin(
       feesTypeModel,
       eq(feesMasterModel.feesTypeId, feesTypeModel.feesTypeId)
+    )
+    .leftJoin(
+      studentPaymentsModel,
+      eq(studentFeesModel.studentFeesId, studentPaymentsModel.studentFeesId)
     )
     .where(eq(studentFeesModel.studentId, studentId))
 
