@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm'
 import { db } from '../config/database'
-import { incomeHeadModel, incomeModel, NewIncome } from '../schemas'
+import { bankAccountModel, incomeHeadModel, incomeModel, mfsModel, NewIncome } from '../schemas'
 import { BadRequestError } from './utils/errors.utils'
 
 // Create
@@ -31,6 +31,13 @@ export const getAllIncomes = async () => {
       invoiceNumber: incomeModel.invoiceNumber,
       date: incomeModel.date,
       method: incomeModel.method,
+      bankAccountId: incomeModel.bankAccountId,
+      bankName: bankAccountModel.bankName,
+      accountNumber: bankAccountModel.accountNumber,
+      branch: bankAccountModel.branch,
+      mfsId: mfsModel.mfsId,
+      accountName: mfsModel.accountName,
+      mfsNumber: mfsModel.mfsNumber,
       amount: incomeModel.amount,
       description: incomeModel.description,
       createdBy: incomeModel.createdBy,
@@ -42,6 +49,14 @@ export const getAllIncomes = async () => {
     .leftJoin(
       incomeHeadModel,
       eq(incomeModel.incomeHeadId, incomeHeadModel.incomeHeadId)
+    )
+    .leftJoin(
+      bankAccountModel,
+      eq(incomeModel.bankAccountId, bankAccountModel.bankAccountId)
+    )
+    .leftJoin(
+      mfsModel,
+      eq(incomeModel.mfsId, mfsModel.mfsId)
     )
 }
 

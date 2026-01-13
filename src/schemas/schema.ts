@@ -363,10 +363,10 @@ export const examResultModel = mysqlTable('exam_results', {
     }
   ),
   classId: int('class_id').references(() => classesModel.classId, {
-    onDelete: 'set null'
+    onDelete: 'set null',
   }),
   sectionId: int('section_id').references(() => sectionsModel.sectionId, {
-    onDelete: 'set null'
+    onDelete: 'set null',
   }),
   gainedMarks: int('gained_marks').notNull(),
   createdBy: int('created_by').notNull(),
@@ -403,6 +403,15 @@ export const incomeModel = mysqlTable('income', {
     'nagad',
     'rocket',
   ]).notNull(),
+  bankAccountId: int('bank_account_id').references(
+    () => bankAccountModel.bankAccountId,
+    {
+      onDelete: 'set null',
+    }
+  ),
+  mfsId: int('mfs_id').references(() => mfsModel.mfsId, {
+    onDelete: 'set null',
+  }),
   amount: double('amount').notNull(),
   description: text('description'),
   createdBy: int('created_by').notNull(),
@@ -439,6 +448,15 @@ export const expenseModel = mysqlTable('expense', {
     'nagad',
     'rocket',
   ]).notNull(),
+  bankAccountId: int('bank_account_id').references(
+    () => bankAccountModel.bankAccountId,
+    {
+      onDelete: 'set null',
+    }
+  ),
+  mfsId: int('mfs_id').references(() => mfsModel.mfsId, {
+    onDelete: 'set null',
+  }),
   amount: double('amount').notNull(),
   description: text('description'),
   createdBy: int('created_by').notNull(),
@@ -661,12 +679,28 @@ export const incomeRelations = relations(incomeModel, ({ one }) => ({
     fields: [incomeModel.incomeHeadId],
     references: [incomeHeadModel.incomeHeadId],
   }),
+  bankAccount: one(bankAccountModel, {
+    fields: [incomeModel.bankAccountId],
+    references: [bankAccountModel.bankAccountId],
+  }),
+  mfs: one(mfsModel, {
+    fields: [incomeModel.mfsId],
+    references: [mfsModel.mfsId],
+  }),
 }))
 
 export const expenseRelations = relations(expenseModel, ({ one }) => ({
   expenseHead: one(expenseHeadModel, {
     fields: [expenseModel.expenseHeadId],
     references: [expenseHeadModel.expenseHeadId],
+  }),
+  bankAccount: one(bankAccountModel, {
+    fields: [expenseModel.bankAccountId],
+    references: [bankAccountModel.bankAccountId],
+  }),
+  mfs: one(mfsModel, {
+    fields: [expenseModel.mfsId],
+    references: [mfsModel.mfsId],
   }),
 }))
 
@@ -735,5 +769,4 @@ export type NewExpenseHead = typeof expenseHeadModel.$inferInsert
 export type Expense = typeof expenseModel.$inferInsert
 export type NewExpense = typeof expenseModel.$inferInsert
 export type BankMfsCash = typeof bankMFsCashModel.$inferInsert
-export type NewBankMfsCash =
-  typeof bankMFsCashModel.$inferInsert
+export type NewBankMfsCash = typeof bankMFsCashModel.$inferInsert
