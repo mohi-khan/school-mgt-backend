@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { currentMonthPaymentSummary, getCurrentYearMonthlyIncome } from '../services/dashboard.service'
+import { currentMonthPaymentSummary, getCurrentYearMonthlyExpense, getCurrentYearMonthlyIncome } from '../services/dashboard.service'
 import { requirePermission } from '../services/utils/jwt.utils'
 
 export const currentMonthPaymentSummaryController = async (
@@ -30,14 +30,33 @@ export const getCurrentYearMonthlyIncomeController = async (
   try {
     requirePermission(req, 'view_dashboard')
     const data = await getCurrentYearMonthlyIncome()
-
+    
     res.status(200).json(data)
   } catch (error) {
     console.error('Monthly Income Error:', error)
-
+    
     res.status(500).json({
       success: false,
       message: 'Failed to fetch monthly income',
+    })
+  }
+}
+
+export const getCurrentYearMonthlyExpenseController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    requirePermission(req, 'view_dashboard')
+    const data = await getCurrentYearMonthlyExpense()
+
+    res.status(200).json(data)
+  } catch (error) {
+    console.error('Monthly Expense Error:', error)
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch monthly expense',
     })
   }
 }

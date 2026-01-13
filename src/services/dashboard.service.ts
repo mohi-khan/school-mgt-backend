@@ -1,6 +1,8 @@
 import { db } from '../config/database'
 import { and, eq, gte, lt, sql } from 'drizzle-orm'
 import {
+  expenseHeadModel,
+  expenseModel,
   feesGroupModel,
   feesMasterModel,
   feesTypeModel,
@@ -149,3 +151,34 @@ export const getCurrentYearMonthlyIncome = async () => {
   return result
 }
 
+export const getCurrentYearMonthlyExpense = async () => {
+  const currentYear = new Date().getFullYear()
+
+  const expenseData = await db
+    .select({
+      id: expenseModel.expenseId,
+      month: sql<number>`MONTH(${expenseModel.date})`.as('month'),
+      amount: sql<number>`SUM(${expenseModel.amount})`.as('amount'),
+      reference: expenseHeadModel.expenseHead,
+    })
+    .from(expenseModel)
+    .innerJoin(
+      expenseHeadModel,
+      eq(expenseModel.expenseHeadId, expenseHeadModel.expenseHeadId)
+    )
+    .where(
+      sql`YEAR(${expenseModel.date}) = ${currentYear}`
+    )
+    .groupBy(
+      expenseModel.expenseId,
+      sql`MONTH(${expenseModel.date})`,
+      expenseHeadModel.expenseHead
+    )
+
+  return expenseData.map((item) => ({
+    id: item.id,
+    month: MONTHS[item.month - 1],
+    amount: Number(item.amount),
+    reference: item.reference,
+  }))
+}
