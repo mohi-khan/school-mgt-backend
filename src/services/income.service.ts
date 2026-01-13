@@ -30,6 +30,7 @@ export const getAllIncomes = async () => {
       name: incomeModel.name,
       invoiceNumber: incomeModel.invoiceNumber,
       date: incomeModel.date,
+      method: incomeModel.method,
       amount: incomeModel.amount,
       description: incomeModel.description,
       createdBy: incomeModel.createdBy,

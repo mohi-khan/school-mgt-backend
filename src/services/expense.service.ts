@@ -30,6 +30,7 @@ export const getAllExpenses = async () => {
       name: expenseModel.name,
       invoiceNumber: expenseModel.invoiceNumber,
       date: expenseModel.date,
+      method: expenseModel.method,
       amount: expenseModel.amount,
       description: expenseModel.description,
       createdBy: expenseModel.createdBy,

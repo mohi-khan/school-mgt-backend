@@ -1,11 +1,13 @@
 import { Request, Response } from 'express'
-import { currentMonthPaymentSummary } from '../services/dashboard.service'
+import { currentMonthPaymentSummary, getCurrentYearMonthlyExpense, getCurrentYearMonthlyIncome } from '../services/dashboard.service'
+import { requirePermission } from '../services/utils/jwt.utils'
 
 export const currentMonthPaymentSummaryController = async (
   req: Request,
   res: Response
 ) => {
   try {
+    requirePermission(req, 'view_dashboard')
     const [summary] = await currentMonthPaymentSummary()
 
     res.status(200).json({
@@ -17,6 +19,44 @@ export const currentMonthPaymentSummaryController = async (
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to fetch monthly payment summary',
+    })
+  }
+}
+
+export const getCurrentYearMonthlyIncomeController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    requirePermission(req, 'view_dashboard')
+    const data = await getCurrentYearMonthlyIncome()
+    
+    res.status(200).json(data)
+  } catch (error) {
+    console.error('Monthly Income Error:', error)
+    
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch monthly income',
+    })
+  }
+}
+
+export const getCurrentYearMonthlyExpenseController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    requirePermission(req, 'view_dashboard')
+    const data = await getCurrentYearMonthlyExpense()
+
+    res.status(200).json(data)
+  } catch (error) {
+    console.error('Monthly Expense Error:', error)
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch monthly expense',
     })
   }
 }
