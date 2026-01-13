@@ -78,107 +78,59 @@ const MONTHS = [
 export const getCurrentYearMonthlyIncome = async () => {
   const currentYear = new Date().getFullYear()
 
-  /* ------------------ Income Table ------------------ */
+  /* -------- Income from income table -------- */
   const incomeData = await db
     .select({
       month: sql<number>`MONTH(${incomeModel.date})`.as('month'),
       amount: sql<number>`SUM(${incomeModel.amount})`.as('amount'),
-      reference: incomeHeadModel.incomeHead,
     })
     .from(incomeModel)
-    .innerJoin(
-      incomeHeadModel,
-      eq(incomeModel.incomeHeadId, incomeHeadModel.incomeHeadId)
-    )
     .where(sql`YEAR(${incomeModel.date}) = ${currentYear}`)
-    .groupBy(sql`MONTH(${incomeModel.date})`, incomeHeadModel.incomeHead)
+    .groupBy(sql`MONTH(${incomeModel.date})`)
 
-  /* ---------------- Student Payments ---------------- */
+  /* -------- Income from student payments -------- */
   const studentPaymentData = await db
     .select({
       month: sql<number>`MONTH(${studentPaymentsModel.paymentDate})`.as(
         'month'
       ),
       amount: sql<number>`SUM(${studentPaymentsModel.paidAmount})`.as('amount'),
-      reference: sql<string>`
-      CONCAT(
-        'Payment of admission no:',
-        ${studentsModel.admissionNo},
-        ' of ',
-        ${feesGroupModel.groupName},
-        ' - ',
-        ${feesTypeModel.typeName}
-      )
-    `.as('reference'),
     })
     .from(studentPaymentsModel)
-    .innerJoin(
-      studentFeesModel,
-      eq(studentPaymentsModel.studentFeesId, studentFeesModel.studentFeesId)
-    )
-    .innerJoin(
-      studentsModel,
-      eq(studentFeesModel.studentId, studentsModel.studentId)
-    )
-    .innerJoin(
-      feesMasterModel,
-      eq(studentFeesModel.feesMasterId, feesMasterModel.feesMasterId)
-    )
-    .innerJoin(
-      feesGroupModel,
-      eq(feesMasterModel.feesGroupId, feesGroupModel.feesGroupId)
-    )
-    .innerJoin(
-      feesTypeModel,
-      eq(feesMasterModel.feesTypeId, feesTypeModel.feesTypeId)
-    )
     .where(sql`YEAR(${studentPaymentsModel.paymentDate}) = ${currentYear}`)
-    .groupBy(
-      sql`MONTH(${studentPaymentsModel.paymentDate})`,
-      studentsModel.admissionNo,
-      feesGroupModel.groupName,
-      feesTypeModel.typeName
-    )
+    .groupBy(sql`MONTH(${studentPaymentsModel.paymentDate})`)
 
-  /* ---------------- Merge + Format ---------------- */
-  const result = [...incomeData, ...studentPaymentData].map((item) => ({
-    id: Math.floor(Math.random() * 1_000_000_000),
-    month: MONTHS[item.month - 1],
-    amount: Number(item.amount),
-    reference: item.reference,
+  /* -------- Merge & sum per month -------- */
+  const monthMap: Record<number, number> = {}
+
+  for (const row of [...incomeData, ...studentPaymentData]) {
+    monthMap[row.month] =
+      (monthMap[row.month] || 0) + Number(row.amount)
+  }
+
+  return Object.entries(monthMap).map(([month, amount]) => ({
+    id: Number(month),
+    month: MONTHS[Number(month) - 1],
+    amount,
   }))
-
-  return result
 }
+
 
 export const getCurrentYearMonthlyExpense = async () => {
   const currentYear = new Date().getFullYear()
 
   const expenseData = await db
     .select({
-      id: expenseModel.expenseId,
       month: sql<number>`MONTH(${expenseModel.date})`.as('month'),
       amount: sql<number>`SUM(${expenseModel.amount})`.as('amount'),
-      reference: expenseHeadModel.expenseHead,
     })
     .from(expenseModel)
-    .innerJoin(
-      expenseHeadModel,
-      eq(expenseModel.expenseHeadId, expenseHeadModel.expenseHeadId)
-    )
-    .where(
-      sql`YEAR(${expenseModel.date}) = ${currentYear}`
-    )
-    .groupBy(
-      expenseModel.expenseId,
-      sql`MONTH(${expenseModel.date})`,
-      expenseHeadModel.expenseHead
-    )
+    .where(sql`YEAR(${expenseModel.date}) = ${currentYear}`)
+    .groupBy(sql`MONTH(${expenseModel.date})`)
 
   return expenseData.map((item) => ({
-    id: item.id,
+    id: item.month,
     month: MONTHS[item.month - 1],
     amount: Number(item.amount),
-    reference: item.reference,
   }))
 }
