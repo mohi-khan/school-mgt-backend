@@ -1,6 +1,13 @@
 import { eq } from 'drizzle-orm'
 import { db } from '../config/database'
-import { expenseHeadModel, expenseModel, NewExpense } from '../schemas'
+import {
+  bankAccountModel,
+  expenseHeadModel,
+  expenseModel,
+  incomeModel,
+  mfsModel,
+  NewExpense,
+} from '../schemas'
 import { BadRequestError } from './utils/errors.utils'
 
 // Create
@@ -31,6 +38,13 @@ export const getAllExpenses = async () => {
       invoiceNumber: expenseModel.invoiceNumber,
       date: expenseModel.date,
       method: expenseModel.method,
+      bankAccountId: expenseModel.bankAccountId,
+      bankName: bankAccountModel.bankName,
+      accountNumber: bankAccountModel.accountNumber,
+      branch: bankAccountModel.branch,
+      mfsId: mfsModel.mfsId,
+      accountName: mfsModel.accountName,
+      mfsNumber: mfsModel.mfsNumber,
       amount: expenseModel.amount,
       description: expenseModel.description,
       createdBy: expenseModel.createdBy,
@@ -43,6 +57,11 @@ export const getAllExpenses = async () => {
       expenseHeadModel,
       eq(expenseModel.expenseHeadId, expenseHeadModel.expenseHeadId)
     )
+    .leftJoin(
+      bankAccountModel,
+      eq(expenseModel.bankAccountId, bankAccountModel.bankAccountId)
+    )
+    .leftJoin(mfsModel, eq(expenseModel.mfsId, mfsModel.mfsId))
 }
 
 // Get By Id
@@ -81,6 +100,6 @@ export const editExpense = async (
 export const deleteExpense = async (expenseId: number) => {
   const result = await db
     .delete(expenseModel)
-    .where(eq(expenseModel.expenseId, expenseId));
-  return { message: "Fees Group deleted successfully" };
-};
+    .where(eq(expenseModel.expenseId, expenseId))
+  return { message: 'Fees Group deleted successfully' }
+}
