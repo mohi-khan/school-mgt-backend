@@ -11,11 +11,33 @@ dotenv.config();
 const app = express();
 
 // Middleware
+// app.use(
+//   cors({
+//     origin: "http://localhost:3000", // frontend origin
+//     // origin: "https://anuka-organic.vercel.app/", // frontend origin
+//     credentials: true, // allow cookies/auth headers
+//   })
+// );
 app.use(
   cors({
-    origin: "http://localhost:3000", // frontend origin
-    // origin: "https://anuka-organic.vercel.app/", // frontend origin
-    credentials: true, // allow cookies/auth headers
+    credentials: true,
+    origin: (
+      origin: string | undefined,
+      cb: (err: Error | null, allow?: boolean) => void
+    ) => {
+      const allowedOrigins = [
+        "http://localhost:3000",
+        "http://srv938571.hstgr.cloud:6050",
+        "https://www.srv938571.hstgr.cloud:6050",
+      ];
+
+      // Allow non-browser requests (no origin) and whitelisted domains
+      if (!origin || allowedOrigins.includes(origin)) {
+        return cb(null, true);
+      }
+
+      return cb(new Error("Not allowed by CORS"));
+    },
   })
 );
 app.use(helmet());
