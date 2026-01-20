@@ -356,6 +356,7 @@ export const getTransactionReport = async (
     ba.branch AS branch,
     mfs.account_name AS mfsAccountName,
     mfs.mfs_number AS mfsNumber,
+    mfs.mfs_type AS mfsType,
     bmc.id AS reference
   FROM bank_mfs_cash bmc
   LEFT JOIN bank_account ba
@@ -388,6 +389,7 @@ UNION ALL
     ba.branch AS branch,
     mfs.account_name AS mfsAccountName,
     mfs.mfs_number AS mfsNumber,
+    mfs.mfs_type AS mfsType,
     e.expense_id AS reference
   FROM expense e
   LEFT JOIN bank_account ba
@@ -420,6 +422,7 @@ UNION ALL
     ba.branch AS branch,
     mfs.account_name AS mfsAccountName,
     mfs.mfs_number AS mfsNumber,
+    mfs.mfs_type AS mfsType,
     sp.studnet_payment_id AS reference
   FROM student_payments sp
   LEFT JOIN bank_account ba
@@ -452,6 +455,7 @@ UNION ALL
     ba.branch AS branch,
     mfs.account_name AS mfsAccountName,
     mfs.mfs_number AS mfsNumber,
+    mfs.mfs_type AS mfsType,
     i.income_id AS reference
   FROM income i
   LEFT JOIN bank_account ba
