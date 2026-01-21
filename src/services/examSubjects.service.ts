@@ -1,6 +1,11 @@
 import { eq } from 'drizzle-orm'
 import { db } from '../config/database'
-import { classesModel, examSubjectsModel, NewExamSubjects } from '../schemas'
+import {
+  classesModel,
+  examSubjectsModel,
+  NewExamSubjects,
+  sessionsModel,
+} from '../schemas'
 import { BadRequestError } from './utils/errors.utils'
 
 // Create
@@ -11,12 +16,18 @@ export const createExamSubjects = async (
   >
 ) => {
   try {
-    const [newExamSubjects] = await db.insert(examSubjectsModel).values({
-      ...examSubjectsData,
-      createdAt: new Date(),
-    })
+    const payload = Array.isArray(examSubjectsData)
+      ? examSubjectsData
+      : [examSubjectsData]
 
-    return newExamSubjects
+    const values = payload.map((item) => ({
+      ...item,
+      createdAt: new Date(),
+    }))
+
+    const result = await db.insert(examSubjectsModel).values(values)
+
+    return result
   } catch (error) {
     throw error
   }
@@ -34,6 +45,8 @@ export const getAllExamSubjectss = async () => {
       duration: examSubjectsModel.duration,
       examMarks: examSubjectsModel.examMarks,
       classId: examSubjectsModel.classId,
+      sessionId: examSubjectsModel.sessionId,
+      sessionName: sessionsModel.sessionName,
       className: classesModel.className,
       createdBy: examSubjectsModel.createdBy,
       createdAt: examSubjectsModel.createdAt,
@@ -42,6 +55,10 @@ export const getAllExamSubjectss = async () => {
     })
     .from(examSubjectsModel)
     .leftJoin(classesModel, eq(examSubjectsModel.classId, classesModel.classId))
+    .leftJoin(
+      sessionsModel,
+      eq(examSubjectsModel.sessionId, sessionsModel.sessionId)
+    )
 }
 
 // Get By Id

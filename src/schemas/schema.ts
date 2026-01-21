@@ -312,6 +312,9 @@ export const examSubjectsModel = mysqlTable('exam_subjects', {
   classId: int('class_id').references(() => classesModel.classId, {
     onDelete: 'set null',
   }),
+  sessionId: int('session_id').references(() => sessionsModel.sessionId, {
+    onDelete: 'set null',
+  }),
   createdBy: int('created_by').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedBy: int('updated_by'),
@@ -634,6 +637,10 @@ export const examSubjectRelations = relations(examSubjectsModel, ({ one }) => ({
     fields: [examSubjectsModel.classId],
     references: [classesModel.classId],
   }),
+  session: one(sessionsModel, {
+    fields: [examSubjectsModel.sessionId],
+    references: [sessionsModel.sessionId],
+  })
 }))
 
 export const examRelations = relations(examsModel, ({ one }) => ({
