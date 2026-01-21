@@ -2,6 +2,7 @@ import { eq, sql } from 'drizzle-orm'
 import { db } from '../config/database'
 import {
   classesModel,
+  examGroupsModel,
   examResultModel,
   examsModel,
   examSubjectsModel,
@@ -39,8 +40,8 @@ export const getAllExamResults = async () => {
       examResultId: examResultModel.examResultId,
       sessionId: examResultModel.sessionId,
       sessionName: sessionsModel.sessionName,
-      examId: examResultModel.examId,
-      examName: examsModel.examName,
+      examGroupsId: examResultModel.examGroupsId,
+      examGroupName: examGroupsModel.examGroupName,
       studentId: examResultModel.studentId,
       studentName: sql<string>`
         CONCAT(${studentsModel.firstName}, ' ', ${studentsModel.lastName})
@@ -62,7 +63,10 @@ export const getAllExamResults = async () => {
       sessionsModel,
       eq(examResultModel.sessionId, sessionsModel.sessionId)
     )
-    .leftJoin(examsModel, eq(examResultModel.examId, examsModel.examId))
+    .leftJoin(
+      examGroupsModel,
+      eq(examResultModel.examGroupsId, examGroupsModel.examGroupsId)
+    )
     .leftJoin(
       studentsModel,
       eq(examResultModel.studentId, studentsModel.studentId)
