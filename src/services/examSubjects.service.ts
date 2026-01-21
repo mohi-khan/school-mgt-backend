@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '../config/database'
 import {
   classesModel,
+  examGroupsModel,
   examSubjectsModel,
   NewExamSubjects,
   sessionsModel,
@@ -19,11 +20,13 @@ export const createExamSubjects = async (
     const payload = Array.isArray(examSubjectsData)
       ? examSubjectsData
       : [examSubjectsData]
+    console.log("🚀 ~ createExamSubjects ~ payload:", payload)
 
     const values = payload.map((item) => ({
       ...item,
       createdAt: new Date(),
     }))
+    console.log("🚀 ~ createExamSubjects ~ values:", values)
 
     const result = await db.insert(examSubjectsModel).values(values)
 
@@ -38,6 +41,8 @@ export const getAllExamSubjectss = async () => {
   return await db
     .select({
       examSubjectId: examSubjectsModel.examSubjectId,
+      examGroupsId: examSubjectsModel.examGroupsId,
+      examGroupName: examGroupsModel.examGroupName,
       subjectName: examSubjectsModel.subjectName,
       subjectCode: examSubjectsModel.subjectCode,
       examDate: examSubjectsModel.examDate,
@@ -54,6 +59,7 @@ export const getAllExamSubjectss = async () => {
       updatedAt: examSubjectsModel.updatedAt,
     })
     .from(examSubjectsModel)
+    .leftJoin(examGroupsModel, eq(examSubjectsModel.examGroupsId, examGroupsModel.examGroupsId))
     .leftJoin(classesModel, eq(examSubjectsModel.classId, classesModel.classId))
     .leftJoin(
       sessionsModel,

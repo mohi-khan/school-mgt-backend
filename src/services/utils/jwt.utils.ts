@@ -38,7 +38,7 @@ export const generateAccessToken = (payload: TokenPayload): string|undefined => 
 
 export const verifyAccessToken = (token: string):TokenPayload => {
   try {
-    console.log('before Varification',token,'payload',JWT_SECRET)
+    // console.log('before Varification',token,'payload',JWT_SECRET)
     return jwt.verify(token,JWT_SECRET) as TokenPayload;
   } catch (error) {
     console.error(error)
@@ -121,7 +121,7 @@ export async function getUserPermissions(userId: number) {
       },
     });
   const permissions = new Set<string>();
-  console.log('dfdfdfdfdfdf',result)
+  // console.log('dfdfdfdfdfdf',result)
   for (const ur of result) {
     for (const perm of ur.role?.rolePermissions) {
       permissions.add(perm.permission.name);
@@ -132,8 +132,8 @@ export async function getUserPermissions(userId: number) {
 }
 
 export const requirePermission = (req: Request, permission: string) => {
-  console.log('this is current user',req.user)
-  console.log('Is permission',req.user?.hasPermission(permission))
+  // console.log('this is current user',req.user)
+  // console.log('Is permission',req.user?.hasPermission(permission))
   if (!req.user?.hasPermission(permission)) {
     throw new Error('Forbidden');
   }

@@ -303,6 +303,9 @@ export const examGroupsModel = mysqlTable('exam_groups', {
 
 export const examSubjectsModel = mysqlTable('exam_subjects', {
   examSubjectId: int('exam_subject_id').primaryKey().autoincrement(),
+  examGroupsId: int('exam_group_id').references(() => examGroupsModel.examGroupsId, {
+    onDelete: 'set null',
+  }),
   subjectName: varchar('subject_name', { length: 255 }).notNull(),
   subjectCode: varchar('subject_code', { length: 10 }).notNull(),
   examDate: date('exam_date').notNull(),
@@ -633,6 +636,10 @@ export const studentPromotionRelations = relations(
 )
 
 export const examSubjectRelations = relations(examSubjectsModel, ({ one }) => ({
+  examGroup: one(examGroupsModel, {
+    fields: [examSubjectsModel.examGroupsId],
+    references: [examGroupsModel.examGroupsId],
+  }),
   class: one(classesModel, {
     fields: [examSubjectsModel.classId],
     references: [classesModel.classId],
@@ -640,7 +647,7 @@ export const examSubjectRelations = relations(examSubjectsModel, ({ one }) => ({
   session: one(sessionsModel, {
     fields: [examSubjectsModel.sessionId],
     references: [sessionsModel.sessionId],
-  })
+  }),
 }))
 
 export const examRelations = relations(examsModel, ({ one }) => ({
