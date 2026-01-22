@@ -303,6 +303,9 @@ export const examGroupsModel = mysqlTable('exam_groups', {
 
 export const examSubjectsModel = mysqlTable('exam_subjects', {
   examSubjectId: int('exam_subject_id').primaryKey().autoincrement(),
+  examGroupsId: int('exam_group_id').references(() => examGroupsModel.examGroupsId, {
+    onDelete: 'set null',
+  }),
   subjectName: varchar('subject_name', { length: 255 }).notNull(),
   subjectCode: varchar('subject_code', { length: 10 }).notNull(),
   examDate: date('exam_date').notNull(),
@@ -310,6 +313,9 @@ export const examSubjectsModel = mysqlTable('exam_subjects', {
   duration: int('duration').notNull(),
   examMarks: int('exam_marks').notNull(),
   classId: int('class_id').references(() => classesModel.classId, {
+    onDelete: 'set null',
+  }),
+  sessionId: int('session_id').references(() => sessionsModel.sessionId, {
     onDelete: 'set null',
   }),
   createdBy: int('created_by').notNull(),
@@ -350,7 +356,7 @@ export const examResultModel = mysqlTable('exam_results', {
   sessionId: int('session_id').references(() => sessionsModel.sessionId, {
     onDelete: 'set null',
   }),
-  examId: int('exam_id').references(() => examsModel.examId, {
+  examGroupsId: int('exam_groups_id').references(() => examGroupsModel.examGroupsId, {
     onDelete: 'set null',
   }),
   studentId: int('student_id').references(() => studentsModel.studentId, {
@@ -630,9 +636,17 @@ export const studentPromotionRelations = relations(
 )
 
 export const examSubjectRelations = relations(examSubjectsModel, ({ one }) => ({
+  examGroup: one(examGroupsModel, {
+    fields: [examSubjectsModel.examGroupsId],
+    references: [examGroupsModel.examGroupsId],
+  }),
   class: one(classesModel, {
     fields: [examSubjectsModel.classId],
     references: [classesModel.classId],
+  }),
+  session: one(sessionsModel, {
+    fields: [examSubjectsModel.sessionId],
+    references: [sessionsModel.sessionId],
   }),
 }))
 
@@ -660,9 +674,9 @@ export const examResultRelations = relations(examResultModel, ({ one }) => ({
     fields: [examResultModel.sessionId],
     references: [sessionsModel.sessionId],
   }),
-  exam: one(examsModel, {
-    fields: [examResultModel.examId],
-    references: [examsModel.examId],
+  examGroup: one(examGroupsModel, {
+    fields: [examResultModel.examGroupsId],
+    references: [examGroupsModel.examGroupsId],
   }),
   student: one(studentsModel, {
     fields: [examResultModel.studentId],
