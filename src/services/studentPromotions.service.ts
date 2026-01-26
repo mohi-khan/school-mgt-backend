@@ -24,7 +24,7 @@ interface PromotionResult {
   notPromotedStudents: {
     studentId: number
     studentName: string
-    rollNo: number
+    rollNo: number | null
     message: string
   }[]
 }
