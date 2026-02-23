@@ -1,6 +1,7 @@
 import { db } from '../config/database'
 import { sql } from 'drizzle-orm'
 import {
+  bankMFsCashModel,
   expenseModel,
   incomeModel,
   openingBalanceModel,
@@ -18,72 +19,134 @@ export const getOverallSchoolSummary = async () => {
     })
     .from(openingBalanceModel)
 
-  const opening = {
-    cash: 0,
-    bank: 0,
-    mfs: 0,
-  }
+  const opening = { cash: 0, bank: 0, mfs: 0 }
 
   for (const ob of openingBalances) {
     opening[ob.type] = Number(ob.amount)
   }
 
   /** -------------------------------
-   * STUDENT PAYMENTS (INFLOW)
+   * INFLOW
    -------------------------------- */
   const [studentPayments] = await db
     .select({
       cash: sql<number>`SUM(CASE WHEN ${studentPaymentsModel.method} = 'cash' THEN ${studentPaymentsModel.paidAmount} ELSE 0 END)`,
       bank: sql<number>`SUM(CASE WHEN ${studentPaymentsModel.method} = 'bank' THEN ${studentPaymentsModel.paidAmount} ELSE 0 END)`,
       mfs: sql<number>`SUM(CASE WHEN ${studentPaymentsModel.method} IN ('bkash','nagad','rocket') THEN ${studentPaymentsModel.paidAmount} ELSE 0 END)`,
-      total: sql<number>`SUM(${studentPaymentsModel.paidAmount})`,
     })
     .from(studentPaymentsModel)
 
-  /** -------------------------------
-   * INCOME (INFLOW)
-   -------------------------------- */
   const [income] = await db
     .select({
       cash: sql<number>`SUM(CASE WHEN ${incomeModel.method} = 'cash' THEN ${incomeModel.amount} ELSE 0 END)`,
       bank: sql<number>`SUM(CASE WHEN ${incomeModel.method} = 'bank' THEN ${incomeModel.amount} ELSE 0 END)`,
       mfs: sql<number>`SUM(CASE WHEN ${incomeModel.method} IN ('bkash','nagad','rocket') THEN ${incomeModel.amount} ELSE 0 END)`,
-      total: sql<number>`SUM(${incomeModel.amount})`,
     })
     .from(incomeModel)
 
   /** -------------------------------
-   * EXPENSE (OUTFLOW)
+   * EXPENSE
    -------------------------------- */
   const [expense] = await db
     .select({
       cash: sql<number>`SUM(CASE WHEN ${expenseModel.method} = 'cash' THEN ${expenseModel.amount} ELSE 0 END)`,
       bank: sql<number>`SUM(CASE WHEN ${expenseModel.method} = 'bank' THEN ${expenseModel.amount} ELSE 0 END)`,
       mfs: sql<number>`SUM(CASE WHEN ${expenseModel.method} IN ('bkash','nagad','rocket') THEN ${expenseModel.amount} ELSE 0 END)`,
-      total: sql<number>`SUM(${expenseModel.amount})`,
     })
     .from(expenseModel)
 
   /** -------------------------------
-   * FINAL BALANCE CALCULATION
+   * TRANSFERS (bank_mfs_cash)
+   -------------------------------- */
+  const [transfers] = await db
+    .select({
+      cashIn: sql<number>`
+        SUM(
+          CASE
+            WHEN ${bankMFsCashModel.toBankAccountId} IS NULL
+             AND ${bankMFsCashModel.toMfsId} IS NULL
+            THEN 0
+            WHEN ${bankMFsCashModel.toBankAccountId} IS NULL
+             AND ${bankMFsCashModel.toMfsId} IS NOT NULL
+            THEN 0
+            ELSE 0
+          END
+        )
+      `,
+      cashOut: sql<number>`
+        SUM(
+          CASE
+            WHEN ${bankMFsCashModel.fromBankAccountId} IS NULL
+             AND ${bankMFsCashModel.fromMfsId} IS NULL
+            THEN ${bankMFsCashModel.amount}
+            ELSE 0
+          END
+        )
+      `,
+      bankIn: sql<number>`
+        SUM(
+          CASE
+            WHEN ${bankMFsCashModel.toBankAccountId} IS NOT NULL
+            THEN ${bankMFsCashModel.amount}
+            ELSE 0
+          END
+        )
+      `,
+      bankOut: sql<number>`
+        SUM(
+          CASE
+            WHEN ${bankMFsCashModel.fromBankAccountId} IS NOT NULL
+            THEN ${bankMFsCashModel.amount}
+            ELSE 0
+          END
+        )
+      `,
+      mfsIn: sql<number>`
+        SUM(
+          CASE
+            WHEN ${bankMFsCashModel.toMfsId} IS NOT NULL
+            THEN ${bankMFsCashModel.amount}
+            ELSE 0
+          END
+        )
+      `,
+      mfsOut: sql<number>`
+        SUM(
+          CASE
+            WHEN ${bankMFsCashModel.fromMfsId} IS NOT NULL
+            THEN ${bankMFsCashModel.amount}
+            ELSE 0
+          END
+        )
+      `,
+    })
+    .from(bankMFsCashModel)
+
+  /** -------------------------------
+   * FINAL BALANCES
    -------------------------------- */
   const cashBalance =
     opening.cash +
     (studentPayments.cash ?? 0) +
     (income.cash ?? 0) -
-    (expense.cash ?? 0)
+    (expense.cash ?? 0) -
+    (transfers.cashOut ?? 0)
 
   const bankBalance =
     opening.bank +
     (studentPayments.bank ?? 0) +
     (income.bank ?? 0) -
-    (expense.bank ?? 0)
+    (expense.bank ?? 0) +
+    (transfers.bankIn ?? 0) -
+    (transfers.bankOut ?? 0)
 
   const mfsBalance =
     opening.mfs +
     (studentPayments.mfs ?? 0) +
     (income.mfs ?? 0) -
-    (expense.mfs ?? 0)
+    (expense.mfs ?? 0) +
+    (transfers.mfsIn ?? 0) -
+    (transfers.mfsOut ?? 0)
 
   const totalBalance = cashBalance + bankBalance + mfsBalance
 
