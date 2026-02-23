@@ -1,35 +1,34 @@
 import { Request, Response } from 'express'
 import {
-  currentMonthSchoolSummary,
+  getOverallSchoolSummary,
   getCurrentYearMonthlyExpense,
   getCurrentYearMonthlyIncome,
 } from '../services/dashboard.service'
 import { requirePermission } from '../services/utils/jwt.utils'
 
-export const currentMonthSchoolSummaryController = async (
+export const getOverallSchoolSummaryController = async (
   req: Request,
   res: Response
 ) => {
   try {
     requirePermission(req, 'view_dashboard')
 
-    const summary = await currentMonthSchoolSummary()
+    const summary = await getOverallSchoolSummary()
 
     res.status(200).json({
       success: true,
-      totalBalance: Number(summary.totalBalance ?? 0),
-      totalCash: Number(summary.cashBalance ?? 0),
-      totalBank: Number(summary.bankBalance ?? 0),
-      totalMfs: Number(summary.mfsBalance ?? 0),
+      totalBalance: Number(summary.totalBalance),
+      totalCash: Number(summary.cashBalance),
+      totalBank: Number(summary.bankBalance),
+      totalMfs: Number(summary.mfsBalance),
     })
   } catch (error: any) {
     res.status(500).json({
       success: false,
-      message: error.message || 'Failed to fetch monthly school summary',
+      message: error.message || 'Failed to fetch school summary',
     })
   }
 }
-
 export const getCurrentYearMonthlyIncomeController = async (
   req: Request,
   res: Response

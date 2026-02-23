@@ -101,6 +101,16 @@ export const classSectionsModel = mysqlTable('class_sections', {
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
 
+export const openingBalanceModel = mysqlTable('opening_balance', {
+  openingBalanceId: int('opening_balance_id').primaryKey().autoincrement(),
+  type: mysqlEnum('type', ['cash', 'bank', 'mfs']).notNull(),
+  amount: double('amount').notNull(),
+  createdBy: int('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedBy: int('updated_by'),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
+
 export const bankAccountModel = mysqlTable('bank_account', {
   bankAccountId: int('bank_account_id').autoincrement().primaryKey(),
   bankName: varchar('bank_name', { length: 100 }).notNull(),
@@ -748,6 +758,8 @@ export type Section = typeof sectionsModel.$inferSelect
 export type NewSection = typeof sectionsModel.$inferInsert
 export type Session = typeof sessionsModel.$inferSelect
 export type NewSession = typeof sessionsModel.$inferInsert
+export type OpeningBalance = typeof openingBalanceModel.$inferSelect
+export type NewOpeningBalance = typeof openingBalanceModel.$inferInsert
 export type BankAccount = typeof bankAccountModel.$inferInsert
 export type NewBankAccount = typeof bankAccountModel.$inferInsert
 export type Mfs = typeof mfsModel.$inferInsert
