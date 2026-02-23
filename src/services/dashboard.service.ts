@@ -1,22 +1,32 @@
 import { db } from '../config/database'
-import { and, eq, gte, lt, sql } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
 import {
-  expenseHeadModel,
   expenseModel,
-  feesGroupModel,
-  feesMasterModel,
-  feesTypeModel,
-  incomeHeadModel,
   incomeModel,
-  studentFeesModel,
+  openingBalanceModel,
   studentPaymentsModel,
-  studentsModel,
 } from '../schemas'
 
-export const currentMonthSchoolSummary = async () => {
-  const now = new Date()
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-  const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+export const getOverallSchoolSummary = async () => {
+  /** -------------------------------
+   * OPENING BALANCE
+   -------------------------------- */
+  const openingBalances = await db
+    .select({
+      type: openingBalanceModel.type,
+      amount: openingBalanceModel.amount,
+    })
+    .from(openingBalanceModel)
+
+  const opening = {
+    cash: 0,
+    bank: 0,
+    mfs: 0,
+  }
+
+  for (const ob of openingBalances) {
+    opening[ob.type] = Number(ob.amount)
+  }
 
   /** -------------------------------
    * STUDENT PAYMENTS (INFLOW)
@@ -29,12 +39,6 @@ export const currentMonthSchoolSummary = async () => {
       total: sql<number>`SUM(${studentPaymentsModel.paidAmount})`,
     })
     .from(studentPaymentsModel)
-    .where(
-      and(
-        gte(studentPaymentsModel.paymentDate, startOfMonth),
-        lt(studentPaymentsModel.paymentDate, startOfNextMonth)
-      )
-    )
 
   /** -------------------------------
    * INCOME (INFLOW)
@@ -47,12 +51,6 @@ export const currentMonthSchoolSummary = async () => {
       total: sql<number>`SUM(${incomeModel.amount})`,
     })
     .from(incomeModel)
-    .where(
-      and(
-        gte(incomeModel.date, startOfMonth),
-        lt(incomeModel.date, startOfNextMonth)
-      )
-    )
 
   /** -------------------------------
    * EXPENSE (OUTFLOW)
@@ -65,27 +63,29 @@ export const currentMonthSchoolSummary = async () => {
       total: sql<number>`SUM(${expenseModel.amount})`,
     })
     .from(expenseModel)
-    .where(
-      and(
-        gte(expenseModel.date, startOfMonth),
-        lt(expenseModel.date, startOfNextMonth)
-      )
-    )
 
   /** -------------------------------
    * FINAL BALANCE CALCULATION
    -------------------------------- */
   const cashBalance =
-    (studentPayments.cash ?? 0) + (income.cash ?? 0) - (expense.cash ?? 0)
+    opening.cash +
+    (studentPayments.cash ?? 0) +
+    (income.cash ?? 0) -
+    (expense.cash ?? 0)
 
   const bankBalance =
-    (studentPayments.bank ?? 0) + (income.bank ?? 0) - (expense.bank ?? 0)
+    opening.bank +
+    (studentPayments.bank ?? 0) +
+    (income.bank ?? 0) -
+    (expense.bank ?? 0)
 
   const mfsBalance =
-    (studentPayments.mfs ?? 0) + (income.mfs ?? 0) - (expense.mfs ?? 0)
+    opening.mfs +
+    (studentPayments.mfs ?? 0) +
+    (income.mfs ?? 0) -
+    (expense.mfs ?? 0)
 
-  const totalBalance =
-    (studentPayments.total ?? 0) + (income.total ?? 0) - (expense.total ?? 0)
+  const totalBalance = cashBalance + bankBalance + mfsBalance
 
   return {
     totalBalance,

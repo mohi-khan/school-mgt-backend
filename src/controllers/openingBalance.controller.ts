@@ -19,7 +19,7 @@ export const createOpeningBalanceController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'create_bank_account')
+    requirePermission(req, 'create_opening_balance')
     const openingBalanceData = createOpeningBalanceSchema.parse(req.body)
     const openingBalance = await createOpeningBalance(openingBalanceData)
 
@@ -38,7 +38,7 @@ export const getAllOpeningBalancesController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'view_bank_account')
+    requirePermission(req, 'view_opening_balance')
     const openingBalances = await getAllOpeningBalances()
 
     res.status(200).json(openingBalances)
