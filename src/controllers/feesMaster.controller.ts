@@ -12,17 +12,20 @@ import {
 import { z } from 'zod'
 
 const dateStringToDate = z.preprocess(
-  (arg) => (typeof arg === "string" || arg instanceof Date ? new Date(arg) : undefined),
+  (arg) =>
+    typeof arg === 'string' || arg instanceof Date ? new Date(arg) : undefined,
   z.date()
-);
+)
 
 // Schema validation
-const createFeesMasterSchema = createInsertSchema(feesMasterModel).omit({
-  feesMasterId: true,
-  createdAt: true,
-}).extend({
+const createFeesMasterSchema = createInsertSchema(feesMasterModel)
+  .omit({
+    feesMasterId: true,
+    createdAt: true,
+  })
+  .extend({
     dueDate: dateStringToDate,
-})
+  })
 
 const editFeesMasterSchema = createFeesMasterSchema.partial()
 
@@ -33,12 +36,19 @@ export const createFeesMasterController = async (
 ) => {
   try {
     requirePermission(req, 'create_fees_master')
-    const feesMasterData = createFeesMasterSchema.parse(req.body)
-    const feesMaster = await createFeesMaster(feesMasterData)
+
+    const payload = Array.isArray(req.body) ? req.body : [req.body]
+
+    // validate each item using SAME schema
+    const validatedData = payload.map((item) =>
+      createFeesMasterSchema.parse(item)
+    )
+
+    const feesMasters = await createFeesMaster(validatedData)
 
     res.status(201).json({
       status: 'success',
-      data: feesMaster,
+      data: feesMasters,
     })
   } catch (error) {
     next(error)
@@ -93,21 +103,24 @@ export const editFeesMasterController = async (
   }
 }
 
-export const deleteFeesMasterController = async (req: Request, res: Response) => {
+export const deleteFeesMasterController = async (
+  req: Request,
+  res: Response
+) => {
   try {
     requirePermission(req, 'delete_fees_master')
-    const feesMasterId = Number(req.params.id);
+    const feesMasterId = Number(req.params.id)
 
-    const result = await deleteFeesMaster(feesMasterId);
+    const result = await deleteFeesMaster(feesMasterId)
 
     res.status(200).json({
       success: true,
       ...result,
-    });
+    })
   } catch (error: any) {
     res.status(400).json({
       success: false,
-      message: error.message || "Something went wrong",
-    });
+      message: error.message || 'Something went wrong',
+    })
   }
-};
+}
