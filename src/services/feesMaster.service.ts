@@ -13,20 +13,21 @@ export const createFeesMaster = async (
   feesMasterData: Omit<
     NewFeesMaster,
     'feesMasterId' | 'updatedAt' | 'updatedBy'
-  >
+  >[]
 ) => {
   try {
-    const [newFeesMaster] = await db.insert(feesMasterModel).values({
-      ...feesMasterData,
+    const insertData = feesMasterData.map((item) => ({
+      ...item,
       createdAt: new Date(),
-    })
+    }))
 
-    return newFeesMaster
+    const result = await db.insert(feesMasterModel).values(insertData)
+
+    return result
   } catch (error) {
     throw error
   }
 }
-
 // Get All
 export const getAllFeesMasters = async () => {
   const records = await db
