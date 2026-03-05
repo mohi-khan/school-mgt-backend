@@ -75,7 +75,6 @@ export const createStudent = async (data: {
     // Validate required fields
     if (!data.studentDetails.admissionNo)
       throw new Error('admissionNo is required')
-    if (!data.studentDetails.rollNo) throw new Error('rollNo is required')
 
     // Insert student
     const [inserted] = await tx
