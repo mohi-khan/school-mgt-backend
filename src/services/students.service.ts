@@ -65,12 +65,16 @@ export type CreateStudentWithFiles = {
 // students.service.ts
 export const createStudent = async (data: {
   studentDetails: any
-  studentFees: { studentId: number | null; feesMasterId: number, amount?: number }[]
+  studentFees: {
+    studentId: number | null
+    feesMasterId: number
+    amount?: number
+  }[]
 }) => {
   return await db.transaction(async (tx) => {
     // Validate required fields
-    if (!data.studentDetails.admissionNo) throw new Error('admissionNo is required')
-    if (!data.studentDetails.rollNo) throw new Error('rollNo is required')
+    if (!data.studentDetails.admissionNo)
+      throw new Error('admissionNo is required')
 
     // Insert student
     const [inserted] = await tx
@@ -154,7 +158,6 @@ export const createStudent = async (data: {
     return student
   })
 }
-
 
 // students.service.ts
 export const updateStudentWithFees = async (data: {
@@ -331,14 +334,48 @@ export async function getAllStudents(
   const studentIds = students.map((s) => s.studentId)
 
   const fees = await db
-    .select()
+    .select({
+      studentFeeId: studentFeesModel.studentFeesId,
+      studentId: studentFeesModel.studentId,
+      feesMasterId: studentFeesModel.feesMasterId,
+      amount: studentFeesModel.amount,
+      paidAmount: studentFeesModel.paidAmount,
+      remainingAmount: studentFeesModel.remainingAmount,
+      status: studentFeesModel.status,
+      createdAt: studentFeesModel.createdAt,
+      dueDate: feesMasterModel.dueDate,
+
+      // fees type fields
+      feesTypeId: feesTypeModel.feesTypeId,
+      feesTypeName: feesTypeModel.typeName,
+    })
     .from(studentFeesModel)
+    .leftJoin(
+      feesMasterModel,
+      eq(studentFeesModel.feesMasterId, feesMasterModel.feesMasterId)
+    )
+    .leftJoin(
+      feesTypeModel,
+      eq(feesMasterModel.feesTypeId, feesTypeModel.feesTypeId)
+    )
     .where(inArray(studentFeesModel.studentId, studentIds))
 
   const feeMap: Record<number, any[]> = {}
+
   for (const f of fees) {
     if (!feeMap[f.studentId!]) feeMap[f.studentId!] = []
-    feeMap[f.studentId!].push(f)
+
+    feeMap[f.studentId!].push({
+      studentFeeId: f.studentFeeId,
+      feesTypeId: f.feesTypeId,
+      amount: f.amount,
+      paidAmount: f.paidAmount,
+      remainingAmount: f.remainingAmount,
+      dueDate: f.dueDate,
+      status: f.status,
+      createdAt: f.createdAt,
+      feesTypeName: f.feesTypeName,
+    })
   }
 
   return students.map((st) => ({

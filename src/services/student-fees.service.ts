@@ -59,16 +59,22 @@ export const collectFees = async (payload: any | any[]) => {
       throw new Error(`Student not found for ID ${studentId}`)
     }
 
-    const isBulk = Array.isArray(payload)
-
+    // const isBulk = Array.isArray(payload)
+    //
     // 🧮 Calculation logic
-    const finalPaidAmount = isBulk
-      ? feeRecord.amount
-      : (feeRecord.paidAmount || 0) + paidAmount
+    // const finalPaidAmount = isBulk
+    //   ? feeRecord.amount
+    //   : (feeRecord.paidAmount || 0) + paidAmount
+    //
+    // if (!isBulk && finalPaidAmount > feeRecord.amount) {
+    //   throw new Error('Total paid amount cannot exceed total fee amount')
+    // }
+    const finalPaidAmount = (feeRecord.paidAmount || 0) + paidAmount
 
-    if (!isBulk && finalPaidAmount > feeRecord.amount) {
+    if (finalPaidAmount > feeRecord.amount) {
       throw new Error('Total paid amount cannot exceed total fee amount')
     }
+
 
     const remainingAmount = feeRecord.amount - finalPaidAmount
     const status: 'Paid' | 'Partial' =
