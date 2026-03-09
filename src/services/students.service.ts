@@ -1,4 +1,4 @@
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray, sql } from 'drizzle-orm'
 import { db } from '../config/database'
 import {
   classesModel,
@@ -344,7 +344,7 @@ export async function getAllStudents(
       status: studentFeesModel.status,
       createdAt: studentFeesModel.createdAt,
       dueDate: feesMasterModel.dueDate,
-
+      lastPaymentDate: studentFeesModel.updatedAt,
       // fees type fields
       feesTypeId: feesTypeModel.feesTypeId,
       feesTypeName: feesTypeModel.typeName,
@@ -372,6 +372,7 @@ export async function getAllStudents(
       paidAmount: f.paidAmount,
       remainingAmount: f.remainingAmount,
       dueDate: f.dueDate,
+      lastPaymentDate: f.lastPaymentDate,
       status: f.status,
       createdAt: f.createdAt,
       feesTypeName: f.feesTypeName,
