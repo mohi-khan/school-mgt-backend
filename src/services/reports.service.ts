@@ -36,6 +36,7 @@ export const studentPaymentReport = async (
       mfsNumber: mfsModel.mfsNumber,
       mfsType: mfsModel.mfsType,
       paidAmount: studentPaymentsModel.paidAmount,
+      reference: studentPaymentsModel.remarks,
     })
     .from(studentPaymentsModel)
     .innerJoin(
