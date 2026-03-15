@@ -1,9 +1,11 @@
 import { db } from '../config/database'
 import { sql } from 'drizzle-orm'
 import {
+  bankAccountModel,
   bankMFsCashModel,
   expenseModel,
   incomeModel,
+  mfsModel,
   openingBalanceModel,
   studentPaymentsModel,
 } from '../schemas'
@@ -31,16 +33,12 @@ export const getOverallSchoolSummary = async () => {
   const [studentPayments] = await db
     .select({
       cash: sql<number>`SUM(CASE WHEN ${studentPaymentsModel.method} = 'cash' THEN ${studentPaymentsModel.paidAmount} ELSE 0 END)`,
-      bank: sql<number>`SUM(CASE WHEN ${studentPaymentsModel.method} = 'bank' THEN ${studentPaymentsModel.paidAmount} ELSE 0 END)`,
-      mfs: sql<number>`SUM(CASE WHEN ${studentPaymentsModel.method} IN ('bkash','nagad','rocket') THEN ${studentPaymentsModel.paidAmount} ELSE 0 END)`,
     })
     .from(studentPaymentsModel)
 
   const [income] = await db
     .select({
       cash: sql<number>`SUM(CASE WHEN ${incomeModel.method} = 'cash' THEN ${incomeModel.amount} ELSE 0 END)`,
-      bank: sql<number>`SUM(CASE WHEN ${incomeModel.method} = 'bank' THEN ${incomeModel.amount} ELSE 0 END)`,
-      mfs: sql<number>`SUM(CASE WHEN ${incomeModel.method} IN ('bkash','nagad','rocket') THEN ${incomeModel.amount} ELSE 0 END)`,
     })
     .from(incomeModel)
 
@@ -50,8 +48,6 @@ export const getOverallSchoolSummary = async () => {
   const [expense] = await db
     .select({
       cash: sql<number>`SUM(CASE WHEN ${expenseModel.method} = 'cash' THEN ${expenseModel.amount} ELSE 0 END)`,
-      bank: sql<number>`SUM(CASE WHEN ${expenseModel.method} = 'bank' THEN ${expenseModel.amount} ELSE 0 END)`,
-      mfs: sql<number>`SUM(CASE WHEN ${expenseModel.method} IN ('bkash','nagad','rocket') THEN ${expenseModel.amount} ELSE 0 END)`,
     })
     .from(expenseModel)
 
@@ -60,19 +56,6 @@ export const getOverallSchoolSummary = async () => {
    -------------------------------- */
   const [transfers] = await db
     .select({
-      cashIn: sql<number>`
-        SUM(
-          CASE
-            WHEN ${bankMFsCashModel.toBankAccountId} IS NULL
-             AND ${bankMFsCashModel.toMfsId} IS NULL
-            THEN 0
-            WHEN ${bankMFsCashModel.toBankAccountId} IS NULL
-             AND ${bankMFsCashModel.toMfsId} IS NOT NULL
-            THEN 0
-            ELSE 0
-          END
-        )
-      `,
       cashOut: sql<number>`
         SUM(
           CASE
@@ -83,44 +66,23 @@ export const getOverallSchoolSummary = async () => {
           END
         )
       `,
-      bankIn: sql<number>`
-        SUM(
-          CASE
-            WHEN ${bankMFsCashModel.toBankAccountId} IS NOT NULL
-            THEN ${bankMFsCashModel.amount}
-            ELSE 0
-          END
-        )
-      `,
-      bankOut: sql<number>`
-        SUM(
-          CASE
-            WHEN ${bankMFsCashModel.fromBankAccountId} IS NOT NULL
-            THEN ${bankMFsCashModel.amount}
-            ELSE 0
-          END
-        )
-      `,
-      mfsIn: sql<number>`
-        SUM(
-          CASE
-            WHEN ${bankMFsCashModel.toMfsId} IS NOT NULL
-            THEN ${bankMFsCashModel.amount}
-            ELSE 0
-          END
-        )
-      `,
-      mfsOut: sql<number>`
-        SUM(
-          CASE
-            WHEN ${bankMFsCashModel.fromMfsId} IS NOT NULL
-            THEN ${bankMFsCashModel.amount}
-            ELSE 0
-          END
-        )
-      `,
     })
     .from(bankMFsCashModel)
+
+  /** -------------------------------
+   * BANK & MFS ACCOUNT BALANCES
+   -------------------------------- */
+  const [bankAccountsBalance] = await db
+    .select({
+      total: sql<number>`COALESCE(SUM(${bankAccountModel.balance}), 0)`,
+    })
+    .from(bankAccountModel)
+
+  const [mfsAccountsBalance] = await db
+    .select({
+      total: sql<number>`COALESCE(SUM(${mfsModel.balance}), 0)`,
+    })
+    .from(mfsModel)
 
   /** -------------------------------
    * FINAL BALANCES
@@ -132,21 +94,9 @@ export const getOverallSchoolSummary = async () => {
     (expense.cash ?? 0) -
     (transfers.cashOut ?? 0)
 
-  const bankBalance =
-    opening.bank +
-    (studentPayments.bank ?? 0) +
-    (income.bank ?? 0) -
-    (expense.bank ?? 0) +
-    (transfers.bankIn ?? 0) -
-    (transfers.bankOut ?? 0)
+  const bankBalance = opening.bank + (bankAccountsBalance.total ?? 0)
 
-  const mfsBalance =
-    opening.mfs +
-    (studentPayments.mfs ?? 0) +
-    (income.mfs ?? 0) -
-    (expense.mfs ?? 0) +
-    (transfers.mfsIn ?? 0) -
-    (transfers.mfsOut ?? 0)
+  const mfsBalance = opening.mfs + (mfsAccountsBalance.total ?? 0)
 
   const totalBalance = cashBalance + bankBalance + mfsBalance
 
@@ -157,7 +107,6 @@ export const getOverallSchoolSummary = async () => {
     mfsBalance,
   }
 }
-
 const MONTHS = [
   'January',
   'February',
