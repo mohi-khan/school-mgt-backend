@@ -2,6 +2,7 @@ import { Router } from 'express'
 import authRoutes from './auth.routes'
 import sectionRoutes from './sections.routes'
 import classesRoutes from './classes.routes'
+import divisionRoutes from './division.routes'
 import feesGroupRoutes from './feesGroup.routes'
 import feesTypeRoutes from './feesType.routes'
 import feesMasterRoutes from './feesMaster.routes'
@@ -29,6 +30,7 @@ const router = Router()
 router.use('/auth', authRoutes)
 router.use('/sections', sectionRoutes)
 router.use('/classes', classesRoutes)
+router.use('/divisions', divisionRoutes)
 router.use('/fees-groups', feesGroupRoutes)
 router.use('/fees-types', feesTypeRoutes)
 router.use('/fees-master', feesMasterRoutes)
