@@ -101,6 +101,18 @@ export const classSectionsModel = mysqlTable('class_sections', {
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
 
+export const divisionModel = mysqlTable('divisions', {
+  divisionId: int('division_id').primaryKey().autoincrement(),
+  divisionName: varchar('division_name', { length: 50 }).notNull(),
+  divisionCode: varchar('division_code', { length: 20 }).unique(),
+  description: varchar('description', { length: 255 }),
+  isActive: boolean('is_active').default(true),
+  createdBy: int('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedBy: int('updated_by'),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
+
 export const openingBalanceModel = mysqlTable('opening_balance', {
   openingBalanceId: int('opening_balance_id').primaryKey().autoincrement(),
   type: mysqlEnum('type', ['cash', 'bank', 'mfs']).notNull(),
@@ -182,15 +194,21 @@ export const studentsModel = mysqlTable('students', {
   studentId: int('student_id').primaryKey().autoincrement(),
   admissionNo: double('admission_no').notNull().unique(),
   rollNo: double('roll_no'),
-  classId: int('class_id').references(() => classesModel.classId, {
-    onDelete: 'cascade',
-  }).notNull(),
-  sectionId: int('section_id').references(() => sectionsModel.sectionId, {
-    onDelete: 'cascade',
-  }).notNull(),
-  sessionId: int('session_id').references(() => sessionsModel.sessionId, {
-    onDelete: 'cascade',
-  }).notNull(),
+  classId: int('class_id')
+    .references(() => classesModel.classId, {
+      onDelete: 'cascade',
+    })
+    .notNull(),
+  sectionId: int('section_id')
+    .references(() => sectionsModel.sectionId, {
+      onDelete: 'cascade',
+    })
+    .notNull(),
+  sessionId: int('session_id')
+    .references(() => sessionsModel.sessionId, {
+      onDelete: 'cascade',
+    })
+    .notNull(),
   firstName: varchar('first_name', { length: 50 }).notNull(),
   lastName: varchar('last_name', { length: 50 }).notNull(),
   gender: mysqlEnum('gender', ['male', 'female']).notNull(),
@@ -313,9 +331,12 @@ export const examGroupsModel = mysqlTable('exam_groups', {
 
 export const examSubjectsModel = mysqlTable('exam_subjects', {
   examSubjectId: int('exam_subject_id').primaryKey().autoincrement(),
-  examGroupsId: int('exam_group_id').references(() => examGroupsModel.examGroupsId, {
-    onDelete: 'set null',
-  }),
+  examGroupsId: int('exam_group_id').references(
+    () => examGroupsModel.examGroupsId,
+    {
+      onDelete: 'set null',
+    }
+  ),
   subjectName: varchar('subject_name', { length: 255 }).notNull(),
   subjectCode: varchar('subject_code', { length: 10 }).notNull(),
   examDate: date('exam_date').notNull(),
@@ -366,9 +387,12 @@ export const examResultModel = mysqlTable('exam_results', {
   sessionId: int('session_id').references(() => sessionsModel.sessionId, {
     onDelete: 'set null',
   }),
-  examGroupsId: int('exam_groups_id').references(() => examGroupsModel.examGroupsId, {
-    onDelete: 'set null',
-  }),
+  examGroupsId: int('exam_groups_id').references(
+    () => examGroupsModel.examGroupsId,
+    {
+      onDelete: 'set null',
+    }
+  ),
   studentId: int('student_id').references(() => studentsModel.studentId, {
     onDelete: 'set null',
   }),
@@ -754,6 +778,8 @@ export type RolePermission = typeof rolePermissionsModel.$inferSelect
 export type NewRolePermission = typeof rolePermissionsModel.$inferInsert
 export type Classes = typeof classesModel.$inferSelect
 export type NewClasses = typeof classesModel.$inferInsert
+export type Divisions = typeof divisionModel.$inferInsert
+export type NewDivision = typeof divisionModel.$inferInsert
 export type Section = typeof sectionsModel.$inferSelect
 export type NewSection = typeof sectionsModel.$inferInsert
 export type Session = typeof sessionsModel.$inferSelect
