@@ -24,7 +24,7 @@ export const createDivisionController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'create_bank_account')
+    requirePermission(req, 'create_division')
     const divisionData = createDivisionSchema.parse(req.body)
     const division = await createDivision(divisionData)
 
@@ -43,7 +43,7 @@ export const getAllDivisionsController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'view_bank_account')
+    requirePermission(req, 'view_division')
     const divisions = await getAllDivisions()
 
     res.status(200).json(divisions)
@@ -58,7 +58,7 @@ export const getDivisionController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'view_bank_account')
+    requirePermission(req, 'view_division')
     const id = Number(req.params.id)
     const division = await getDivisionById(id)
 
@@ -74,7 +74,7 @@ export const editDivisionController = async (
   next: NextFunction
 ) => {
   try {
-    requirePermission(req, 'edit_bank_account')
+    requirePermission(req, 'edit_division')
     const id = Number(req.params.id)
     const divisionData = editDivisionSchema.parse(req.body)
     const division = await editDivision(id, divisionData)
@@ -87,7 +87,7 @@ export const editDivisionController = async (
 
 export const deleteDivisionController = async (req: Request, res: Response) => {
   try {
-    requirePermission(req, 'delete_bank_account')
+    requirePermission(req, 'delete_division')
     const divisionId = Number(req.params.id);
 
     const result = await deleteDivision(divisionId);
