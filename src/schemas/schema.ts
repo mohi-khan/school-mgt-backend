@@ -75,6 +75,17 @@ export const classesModel = mysqlTable('classes', {
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
+export const divisionsModel = mysqlTable('classes', {
+  divisionId: int('class_id').primaryKey().autoincrement(),
+  divisionName: varchar('class_name', { length: 50 }).notNull(),
+  divisionCode: varchar('class_code', { length: 20 }).unique(),
+  description: varchar('description', { length: 255 }),
+  isActive: boolean('is_active').default(true),
+  createdBy: int('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedBy: int('updated_by'),
+  updatedAt: timestamp('updated_at').onUpdateNow(),
+})
 
 export const sectionsModel = mysqlTable('sections', {
   sectionId: int('section_id').primaryKey().autoincrement(),
@@ -196,6 +207,10 @@ export const studentsModel = mysqlTable('students', {
   rollNo: double('roll_no'),
   classId: int('class_id')
     .references(() => classesModel.classId, {
+      onDelete: 'cascade',
+    }),
+  divisionId: int('division_id')
+    .references(() => divisionsModel.divisionId, {
       onDelete: 'cascade',
     })
     .notNull(),
@@ -602,6 +617,10 @@ export const studentRelations = relations(studentsModel, ({ one, many }) => ({
   class: one(classesModel, {
     fields: [studentsModel.classId],
     references: [classesModel.classId],
+  }),
+  division: one(divisionsModel, {
+    fields: [studentsModel.divisionId],
+    references: [divisionsModel.divisionId],
   }),
   section: one(sectionsModel, {
     fields: [studentsModel.sectionId],

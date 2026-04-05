@@ -2,6 +2,7 @@ import { and, eq, inArray, sql } from 'drizzle-orm'
 import { db } from '../config/database'
 import {
   classesModel,
+  divisionModel,
   feesGroupModel,
   feesMasterModel,
   feesTypeModel,
@@ -83,6 +84,7 @@ export const createStudent = async (data: {
         admissionNo: data.studentDetails.admissionNo,
         rollNo: data.studentDetails.rollNo,
         classId: data.studentDetails.classId ?? null,
+        divisionId: data.studentDetails.divisionId ?? null,
         sectionId: data.studentDetails.sectionId ?? null,
         sessionId: data.studentDetails.sessionId ?? null,
         firstName: data.studentDetails.firstName,
@@ -184,6 +186,7 @@ export const updateStudentWithFees = async (data: {
         admissionNo: studentDetails.admissionNo,
         rollNo: studentDetails.rollNo,
         classId: studentDetails.classId ?? null,
+        divisionId: studentDetails.divisionId ?? null,
         sectionId: studentDetails.sectionId ?? null,
         sessionId: studentDetails.sessionId ?? null,
         firstName: studentDetails.firstName,
@@ -280,6 +283,7 @@ export async function getAllStudents(
       admissionNo: studentsModel.admissionNo,
       rollNo: studentsModel.rollNo,
       classId: studentsModel.classId,
+      divisionId: studentsModel.divisionId,
       sectionId: studentsModel.sectionId,
       sessionId: studentsModel.sessionId,
       firstName: studentsModel.firstName,
@@ -309,11 +313,16 @@ export async function getAllStudents(
       createdAt: studentsModel.createdAt,
       updatedAt: studentsModel.updatedAt,
       className: classesModel.className,
+      divisionName: divisionModel.divisionName,
       sectionName: sectionsModel.sectionName,
       sessionName: sessionsModel.sessionName,
     })
     .from(studentsModel)
     .leftJoin(classesModel, eq(studentsModel.classId, classesModel.classId))
+    .leftJoin(
+      divisionModel,
+      eq(studentsModel.divisionId, divisionModel.divisionId)
+    )
     .leftJoin(
       sectionsModel,
       eq(studentsModel.sectionId, sectionsModel.sectionId)
@@ -393,6 +402,7 @@ export async function getStudentById(studentId: number) {
       admissionNo: studentsModel.admissionNo,
       rollNo: studentsModel.rollNo,
       classId: studentsModel.classId,
+      divisionId: studentsModel.divisionId,
       sectionId: studentsModel.sectionId,
       sessionId: studentsModel.sessionId,
       firstName: studentsModel.firstName,
@@ -427,6 +437,7 @@ export async function getStudentById(studentId: number) {
     })
     .from(studentsModel)
     .leftJoin(classesModel, eq(studentsModel.classId, classesModel.classId))
+    .leftJoin(divisionModel, eq(studentsModel.divisionId, divisionModel.divisionId))
     .leftJoin(
       sectionsModel,
       eq(studentsModel.sectionId, sectionsModel.sectionId)
