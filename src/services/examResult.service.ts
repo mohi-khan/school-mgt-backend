@@ -2,6 +2,7 @@ import { eq, sql } from 'drizzle-orm'
 import { db } from '../config/database'
 import {
   classesModel,
+  divisionModel,
   examGroupsModel,
   examResultModel,
   examsModel,
@@ -53,10 +54,8 @@ export const getAllExamResults = async () => {
       updatedBy: examResultModel.updatedBy,
       updatedAt: examResultModel.updatedAt,
       examSubjectName: examSubjectsModel.subjectName,
-      classId: examResultModel.classId,
-      className: classesModel.className,
-      sectionId: examResultModel.sectionId,
-      sectionName: sectionsModel.sectionName,
+      divisionId: examResultModel.divisionId,
+      divisionName: divisionModel.divisionName,
     })
     .from(examResultModel)
     .leftJoin(
@@ -76,12 +75,8 @@ export const getAllExamResults = async () => {
       eq(examResultModel.examSubjectId, examSubjectsModel.examSubjectId)
     )
     .leftJoin(
-      classesModel,
-      eq(studentsModel.classId, classesModel.classId)
-    )
-    .leftJoin(
-      sectionsModel,
-      eq(studentsModel.sectionId, sectionsModel.sectionId)
+      divisionModel,
+      eq(studentsModel.divisionId, divisionModel.divisionId)
     )
 }
 

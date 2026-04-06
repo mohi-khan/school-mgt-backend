@@ -420,10 +420,7 @@ export const examResultModel = mysqlTable('exam_results', {
       onDelete: 'set null',
     }
   ),
-  classId: int('class_id').references(() => classesModel.classId, {
-    onDelete: 'set null',
-  }),
-  sectionId: int('section_id').references(() => sectionsModel.sectionId, {
+  divisionId: int('division_id').references(() => divisionModel.divisionId, {
     onDelete: 'set null',
   }),
   gainedMarks: int('gained_marks').notNull(),
@@ -733,6 +730,10 @@ export const examResultRelations = relations(examResultModel, ({ one }) => ({
   session: one(sessionsModel, {
     fields: [examResultModel.sessionId],
     references: [sessionsModel.sessionId],
+  }),
+  division: one(divisionModel, {
+    fields: [examResultModel.divisionId],
+    references: [divisionModel.divisionId],
   }),
   examGroup: one(examGroupsModel, {
     fields: [examResultModel.examGroupsId],
