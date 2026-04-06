@@ -75,10 +75,10 @@ export const classesModel = mysqlTable('classes', {
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
-export const divisionsModel = mysqlTable('classes', {
-  divisionId: int('class_id').primaryKey().autoincrement(),
-  divisionName: varchar('class_name', { length: 50 }).notNull(),
-  divisionCode: varchar('class_code', { length: 20 }).unique(),
+export const divisionsModel = mysqlTable('divisions', {
+  divisionId: int('division_id').primaryKey().autoincrement(),
+  divisionName: varchar('division_name', { length: 50 }).notNull(),
+  divisionCode: varchar('division_code', { length: 20 }).unique(),
   description: varchar('description', { length: 255 }),
   isActive: boolean('is_active').default(true),
   createdBy: int('created_by').notNull(),
@@ -360,6 +360,9 @@ export const examSubjectsModel = mysqlTable('exam_subjects', {
   examMarks: int('exam_marks').notNull(),
   classId: int('class_id').references(() => classesModel.classId, {
     onDelete: 'set null',
+  }),
+  divisionId: int('division_id').references(() => divisionsModel.divisionId, {
+    onDelete: 'cascade',
   }),
   sessionId: int('session_id').references(() => sessionsModel.sessionId, {
     onDelete: 'set null',
@@ -696,6 +699,10 @@ export const examSubjectRelations = relations(examSubjectsModel, ({ one }) => ({
   class: one(classesModel, {
     fields: [examSubjectsModel.classId],
     references: [classesModel.classId],
+  }),
+  division: one(divisionsModel, {
+    fields: [examSubjectsModel.divisionId],
+    references: [divisionsModel.divisionId],
   }),
   session: one(sessionsModel, {
     fields: [examSubjectsModel.sessionId],
