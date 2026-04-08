@@ -39,6 +39,10 @@ export const getAllExamResults = async () => {
   return await db
     .select({
       examResultId: examResultModel.examResultId,
+      divisionId: examResultModel.divisionId,
+      divisionName: divisionModel.divisionName,
+      classId: examResultModel.classId,
+      className: classesModel.className,
       sessionId: examResultModel.sessionId,
       sessionName: sessionsModel.sessionName,
       examGroupsId: examResultModel.examGroupsId,
@@ -48,14 +52,13 @@ export const getAllExamResults = async () => {
         CONCAT(${studentsModel.firstName}, ' ', ${studentsModel.lastName})
       `.as('student_name'),
       examSubjectId: examResultModel.examSubjectId,
+      examSubjectName: examSubjectsModel.subjectName,
       gainedMarks: examResultModel.gainedMarks,
+      totalMarks: examSubjectsModel.examMarks,
       createdBy: examResultModel.createdBy,
       createdAt: examResultModel.createdAt,
       updatedBy: examResultModel.updatedBy,
       updatedAt: examResultModel.updatedAt,
-      examSubjectName: examSubjectsModel.subjectName,
-      divisionId: examResultModel.divisionId,
-      divisionName: divisionModel.divisionName,
     })
     .from(examResultModel)
     .leftJoin(
@@ -78,6 +81,7 @@ export const getAllExamResults = async () => {
       divisionModel,
       eq(studentsModel.divisionId, divisionModel.divisionId)
     )
+    .leftJoin(classesModel, eq(studentsModel.classId, classesModel.classId))
 }
 
 // Get By Id
