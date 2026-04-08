@@ -54,6 +54,7 @@ export const getAllExamResults = async () => {
       examSubjectId: examResultModel.examSubjectId,
       examSubjectName: examSubjectsModel.subjectName,
       gainedMarks: examResultModel.gainedMarks,
+      totalMarks: examSubjectsModel.examMarks,
       createdBy: examResultModel.createdBy,
       createdAt: examResultModel.createdAt,
       updatedBy: examResultModel.updatedBy,
