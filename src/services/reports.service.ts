@@ -3,6 +3,7 @@ import { and, eq, gte, lte, sql } from 'drizzle-orm'
 import {
   bankAccountModel,
   classesModel,
+  divisionModel,
   expenseHeadModel,
   expenseModel,
   incomeHeadModel,
@@ -27,6 +28,7 @@ export const studentPaymentReport = async (
       `.as('studentName'),
       studentClass: classesModel.className,
       studentSection: sectionsModel.sectionName,
+      studentDivision: divisionModel.divisionName,
       studentSession: sessionsModel.sessionName,
       method: studentPaymentsModel.method,
       bankName: bankAccountModel.bankName,
@@ -39,21 +41,25 @@ export const studentPaymentReport = async (
       reference: studentPaymentsModel.remarks,
     })
     .from(studentPaymentsModel)
-    .innerJoin(
+    .leftJoin(
       studentsModel,
       eq(studentPaymentsModel.studentId, studentsModel.studentId)
     )
-    .innerJoin(
+    .leftJoin(
       classesModel,
       eq(studentPaymentsModel.classId, classesModel.classId)
     )
-    .innerJoin(
+    .leftJoin(
       sectionsModel,
       eq(studentPaymentsModel.sectionId, sectionsModel.sectionId)
     )
-    .innerJoin(
+    .leftJoin(
       sessionsModel,
       eq(studentPaymentsModel.sessionId, sessionsModel.sessionId)
+    )
+    .leftJoin(
+      divisionModel,
+      eq(studentPaymentsModel.divisionId, divisionModel.divisionId)
     )
     .leftJoin(
       bankAccountModel,
@@ -62,8 +68,8 @@ export const studentPaymentReport = async (
     .leftJoin(mfsModel, eq(studentPaymentsModel.mfsId, mfsModel.mfsId))
     .where(
       and(
-        gte(studentPaymentsModel.paymentDate, new Date(fromDate)),
-        lte(studentPaymentsModel.paymentDate, new Date(toDate))
+        sql`${studentPaymentsModel.paymentDate} >= ${fromDate}`,
+        sql`${studentPaymentsModel.paymentDate} <= ${toDate}`
       )
     )
     .orderBy(studentPaymentsModel.paymentDate)

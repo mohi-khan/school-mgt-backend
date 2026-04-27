@@ -205,10 +205,9 @@ export const studentsModel = mysqlTable('students', {
   studentId: int('student_id').primaryKey().autoincrement(),
   admissionNo: double('admission_no').notNull().unique(),
   rollNo: double('roll_no'),
-  classId: int('class_id')
-    .references(() => classesModel.classId, {
-      onDelete: 'cascade',
-    }),
+  classId: int('class_id').references(() => classesModel.classId, {
+    onDelete: 'cascade',
+  }),
   divisionId: int('division_id')
     .references(() => divisionsModel.divisionId, {
       onDelete: 'cascade',
@@ -295,6 +294,9 @@ export const studentPaymentsModel = mysqlTable('student_payments', {
     onDelete: 'set null',
   }),
   sectionId: int('section_id').references(() => sectionsModel.sectionId, {
+    onDelete: 'set null',
+  }),
+  divisionId: int('division_id').references(() => divisionModel.divisionId, {
     onDelete: 'set null',
   }),
   sessionId: int('session_id').references(() => sessionsModel.sessionId, {
@@ -661,6 +663,10 @@ export const studentPaymentRelations = relations(
     section: one(sectionsModel, {
       fields: [studentPaymentsModel.studentFeesId],
       references: [sectionsModel.sectionId],
+    }),
+    division: one(divisionModel, {
+      fields: [studentPaymentsModel.studentFeesId],
+      references: [divisionModel.divisionId],
     }),
     session: one(sessionsModel, {
       fields: [studentPaymentsModel.studentFeesId],
