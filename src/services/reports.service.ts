@@ -62,8 +62,8 @@ export const studentPaymentReport = async (
     .leftJoin(mfsModel, eq(studentPaymentsModel.mfsId, mfsModel.mfsId))
     .where(
       and(
-        gte(studentPaymentsModel.paymentDate, new Date(fromDate)),
-        lte(studentPaymentsModel.paymentDate, new Date(toDate))
+        sql`${studentPaymentsModel.paymentDate} >= ${fromDate}`,
+        sql`${studentPaymentsModel.paymentDate} <= ${toDate}`
       )
     )
     .orderBy(studentPaymentsModel.paymentDate)
