@@ -27,11 +27,12 @@ export const collectFees = async (payload: any | any[]) => {
       remarks,
     } = body
 
+    console.log('➡️ Processing student:', studentId)
+
     if (!studentFeesId) throw new Error('studentFeesId is required')
     if (!method) throw new Error('payment method is required')
     if (!paymentDate) throw new Error('paymentDate is required')
 
-    // Fetch fee record
     const feeRecord = await db
       .select({
         amount: studentFeesModel.amount,
@@ -42,7 +43,7 @@ export const collectFees = async (payload: any | any[]) => {
       .then((res) => res[0])
 
     if (!feeRecord) {
-      throw new Error(`Fee record not found for ID ${studentFeesId}`)
+      throw new Error(`Fee record not found: ${studentFeesId}`)
     }
 
     const student = await db
@@ -50,37 +51,27 @@ export const collectFees = async (payload: any | any[]) => {
         classId: studentsModel.classId,
         sectionId: studentsModel.sectionId,
         sessionId: studentsModel.sessionId,
+        divisionId: studentsModel.divisionId,
       })
       .from(studentsModel)
       .where(eq(studentsModel.studentId, studentId))
       .then((res) => res[0])
 
-    if (!student) {
-      throw new Error(`Student not found for ID ${studentId}`)
+    console.log('👤 Student data:', student)
+
+    if (!student?.divisionId) {
+      throw new Error(`Missing divisionId for student ${studentId}`)
     }
 
-    // const isBulk = Array.isArray(payload)
-    //
-    // 🧮 Calculation logic
-    // const finalPaidAmount = isBulk
-    //   ? feeRecord.amount
-    //   : (feeRecord.paidAmount || 0) + paidAmount
-    //
-    // if (!isBulk && finalPaidAmount > feeRecord.amount) {
-    //   throw new Error('Total paid amount cannot exceed total fee amount')
-    // }
     const finalPaidAmount = (feeRecord.paidAmount || 0) + paidAmount
 
     if (finalPaidAmount > feeRecord.amount) {
-      throw new Error('Total paid amount cannot exceed total fee amount')
+      throw new Error('Total paid amount cannot exceed fee amount')
     }
 
-
     const remainingAmount = feeRecord.amount - finalPaidAmount
-    const status: 'Paid' | 'Partial' =
-      remainingAmount === 0 ? 'Paid' : 'Partial'
+    const status = remainingAmount === 0 ? 'Paid' : 'Partial'
 
-    // 🔄 Update student_fees
     await db
       .update(studentFeesModel)
       .set({
@@ -91,25 +82,27 @@ export const collectFees = async (payload: any | any[]) => {
       })
       .where(eq(studentFeesModel.studentFeesId, studentFeesId))
 
-    // ➕ Insert payment record
+    console.log('💾 Inserting payment for:', studentId)
+
     await db.insert(studentPaymentsModel).values({
       studentFeesId,
       studentId,
-      classId: student.classId,
-      sectionId: student.sectionId,
+      divisionId: student.divisionId, // ✅ REQUIRED NOW
+      classId: student.classId || null,
+      sectionId: student.sectionId || null,
       sessionId: student.sessionId,
       method,
       bankAccountId: bankAccountId || null,
       mfsId: mfsId || null,
       paymentDate: new Date(paymentDate),
-      paidAmount: paidAmount,
+      paidAmount,
       remarks: remarks || null,
       createdAt: new Date(),
     })
 
     results.push({
       studentFeesId,
-      paidAmount: paidAmount,
+      paidAmount,
       remainingAmount,
       status,
     })
