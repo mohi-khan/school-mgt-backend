@@ -116,8 +116,9 @@ export const getAllStudentsController = async (req: Request, res: Response) => {
 
     const classId = req.query.classId ? Number(req.query.classId) : null
     const sectionId = req.query.sectionId ? Number(req.query.sectionId) : null
+    const divisionId = req.query.divisionId ? Number(req.query.divisionId) : null
 
-    const data = await getAllStudents(classId, sectionId)
+    const data = await getAllStudents(classId, sectionId, divisionId)
 
     res.json(data)
   } catch (error) {
