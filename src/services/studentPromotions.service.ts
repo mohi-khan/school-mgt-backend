@@ -13,6 +13,7 @@ interface PromoteRequest {
     classId: number
     secitionId: number
     sessionId: number
+    divisionId: number
     currentResult: 'Pass' | 'Fail'
     nextSession: 'Continue' | 'Leave'
   }[]
@@ -44,6 +45,7 @@ export const promoteStudents = async (
         classId,
         secitionId,
         sessionId,
+        divisionId,
         currentResult,
         nextSession,
       } = studentData
@@ -95,7 +97,7 @@ export const promoteStudents = async (
       // 1️⃣ Update class + section
       await tx
         .update(studentsModel)
-        .set({ classId, sectionId: secitionId, sessionId: sessionId })
+        .set({ classId, sectionId: secitionId, sessionId: sessionId, divisionId: divisionId })
         .where(eq(studentsModel.studentId, studentId))
 
       // 2️⃣ Delete old student fees (all)

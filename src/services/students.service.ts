@@ -270,12 +270,14 @@ export const updateStudentWithFees = async (data: {
 
 export async function getAllStudents(
   classId?: number | null,
-  sectionId?: number | null
+  sectionId?: number | null,
+  divisionId?: number | null
 ) {
   const conditions: any[] = []
 
   if (classId) conditions.push(eq(studentsModel.classId, classId))
   if (sectionId) conditions.push(eq(studentsModel.sectionId, sectionId))
+  if (divisionId) conditions.push(eq(studentsModel.divisionId, divisionId))
 
   const baseQuery = db
     .select({
@@ -437,7 +439,10 @@ export async function getStudentById(studentId: number) {
     })
     .from(studentsModel)
     .leftJoin(classesModel, eq(studentsModel.classId, classesModel.classId))
-    .leftJoin(divisionModel, eq(studentsModel.divisionId, divisionModel.divisionId))
+    .leftJoin(
+      divisionModel,
+      eq(studentsModel.divisionId, divisionModel.divisionId)
+    )
     .leftJoin(
       sectionsModel,
       eq(studentsModel.sectionId, sectionsModel.sectionId)
