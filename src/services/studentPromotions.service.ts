@@ -11,7 +11,7 @@ interface PromoteRequest {
   students: {
     studentId: number
     classId: number
-    secitionId: number
+    sectionId: number
     sessionId: number
     divisionId: number
     currentResult: 'Pass' | 'Fail'
@@ -43,19 +43,23 @@ export const promoteStudents = async (
       const {
         studentId,
         classId,
-        secitionId,
+        sectionId,
         sessionId,
         divisionId,
         currentResult,
         nextSession,
       } = studentData
 
-      // Fetch student info
+      // 1️⃣ Fetch student basic info + current academic data
       const [student] = await tx
         .select({
           firstName: studentsModel.firstName,
           lastName: studentsModel.lastName,
           rollNo: studentsModel.rollNo,
+          classId: studentsModel.classId,
+          sectionId: studentsModel.sectionId,
+          sessionId: studentsModel.sessionId,
+          divisionId: studentsModel.divisionId,
         })
         .from(studentsModel)
         .where(eq(studentsModel.studentId, studentId))
@@ -72,7 +76,7 @@ export const promoteStudents = async (
 
       const studentName = `${student.firstName} ${student.lastName}`
 
-      // Fetch student fees
+      // 2️⃣ Check fees status
       const feesRecords = await tx
         .select()
         .from(studentFeesModel)
@@ -94,22 +98,33 @@ export const promoteStudents = async (
       /** ------------------------------------------------
        * Promote Student
        * ------------------------------------------------ */
-      // 1️⃣ Update class + section
+
+      // 3️⃣ Merge new + old values (IMPORTANT PART)
+      const updatedClassId = classId ?? student.classId
+      const updatedSectionId = sectionId ?? student.sectionId
+      const updatedSessionId = sessionId ?? student.sessionId
+      const updatedDivisionId = divisionId ?? student.divisionId
+
+      // 4️⃣ Update student
       await tx
         .update(studentsModel)
-        .set({ classId, sectionId: secitionId, sessionId: sessionId, divisionId: divisionId })
+        .set({
+          classId: updatedClassId,
+          sectionId: updatedSectionId,
+          sessionId: updatedSessionId,
+          divisionId: updatedDivisionId,
+        })
         .where(eq(studentsModel.studentId, studentId))
 
-      // 2️⃣ Delete old student fees (all)
+      // 5️⃣ Delete old student fees
       if (feesRecords.length > 0) {
         await tx
           .delete(studentFeesModel)
           .where(eq(studentFeesModel.studentId, studentId))
       }
 
-      // 3️⃣ Insert new student fees from feesMasterIds
+      // 6️⃣ Insert new student fees
       for (const feesMasterId of feesMasterIds) {
-        // Fetch fee amount from feesMasterModel
         const [feeMaster] = await tx
           .select({ amount: feesMasterModel.amount })
           .from(feesMasterModel)
@@ -129,7 +144,7 @@ export const promoteStudents = async (
         })
       }
 
-      // 4️⃣ Insert promotion record
+      // 7️⃣ Insert promotion record
       await tx.insert(studentPromotionModel).values({
         studentId,
         currentResult,
