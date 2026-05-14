@@ -170,7 +170,10 @@ export const updateStudentWithFees = async (data: {
   return await db.transaction(async (tx) => {
     const { studentId, studentDetails, studentFees } = data
 
-    // Ensure student exists
+    // =========================
+    // CHECK STUDENT
+    // =========================
+
     const existingStudent = await tx.query.studentsModel.findFirst({
       where: eq(studentsModel.studentId, studentId),
     })
@@ -179,75 +182,268 @@ export const updateStudentWithFees = async (data: {
       throw new Error('Student not found')
     }
 
-    // Update student table
-    await tx
-      .update(studentsModel)
-      .set({
-        admissionNo: studentDetails.admissionNo,
-        rollNo: studentDetails.rollNo,
-        classId: studentDetails.classId ?? null,
-        divisionId: studentDetails.divisionId ?? null,
-        sectionId: studentDetails.sectionId ?? null,
-        sessionId: studentDetails.sessionId ?? null,
-        firstName: studentDetails.firstName,
-        lastName: studentDetails.lastName,
-        gender: studentDetails.gender,
-        dateOfBirth: studentDetails.dateOfBirth
-          ? new Date(studentDetails.dateOfBirth)
-          : undefined,
-        religion: studentDetails.religion ?? null,
-        bloodGroup: studentDetails.bloodGroup ?? null,
-        height: studentDetails.height ?? null,
-        weight: studentDetails.weight ?? null,
-        address: studentDetails.address ?? null,
-        phoneNumber: studentDetails.phoneNumber,
-        email: studentDetails.email,
-        admissionDate: studentDetails.admissionDate
-          ? new Date(studentDetails.admissionDate)
-          : undefined,
-        photoUrl: studentDetails.photoUrl ?? existingStudent.photoUrl,
-        isActive: studentDetails.isActive ?? existingStudent.isActive,
-        fatherName: studentDetails.fatherName ?? null,
-        fatherPhone: studentDetails.fatherPhone,
-        fatherEmail: studentDetails.fatherEmail,
-        fatherOccupation: studentDetails.fatherOccupation ?? null,
-        fatherPhotoUrl:
-          studentDetails.fatherPhotoUrl ?? existingStudent.fatherPhotoUrl,
-        motherName: studentDetails.motherName ?? null,
-        motherPhone: studentDetails.motherPhone,
-        motherEmail: studentDetails.motherEmail,
-        motherOccupation: studentDetails.motherOccupation ?? null,
-        motherPhotoUrl:
-          studentDetails.motherPhotoUrl ?? existingStudent.motherPhotoUrl,
-        updatedAt: new Date(),
-      })
-      .where(eq(studentsModel.studentId, studentId))
+    // =========================
+    // UPDATE ONLY CHANGED FIELDS
+    // =========================
 
-    // 🔥 Reset fees (simple & safe approach)
-    await tx
-      .delete(studentFeesModel)
-      .where(eq(studentFeesModel.studentId, studentId))
+    const updateData: any = {}
 
-    if (studentFees.length > 0) {
-      const feesMasterIds = studentFees.map((f) => f.feesMasterId)
+    const assignIfChanged = (key: string, newValue: any, oldValue: any) => {
+      const normalizedNew =
+        newValue instanceof Date ? newValue.getTime() : newValue
 
+      const normalizedOld =
+        oldValue instanceof Date ? oldValue.getTime() : oldValue
+
+      if (normalizedNew !== normalizedOld && newValue !== undefined) {
+        updateData[key] = newValue
+      }
+    }
+
+    assignIfChanged(
+      'admissionNo',
+      studentDetails.admissionNo,
+      existingStudent.admissionNo
+    )
+
+    assignIfChanged('rollNo', studentDetails.rollNo, existingStudent.rollNo)
+
+    assignIfChanged(
+      'classId',
+      studentDetails.classId ?? null,
+      existingStudent.classId
+    )
+
+    assignIfChanged(
+      'divisionId',
+      studentDetails.divisionId ?? null,
+      existingStudent.divisionId
+    )
+
+    assignIfChanged(
+      'sectionId',
+      studentDetails.sectionId ?? null,
+      existingStudent.sectionId
+    )
+
+    assignIfChanged(
+      'sessionId',
+      studentDetails.sessionId ?? null,
+      existingStudent.sessionId
+    )
+
+    assignIfChanged(
+      'firstName',
+      studentDetails.firstName,
+      existingStudent.firstName
+    )
+
+    assignIfChanged(
+      'lastName',
+      studentDetails.lastName,
+      existingStudent.lastName
+    )
+
+    assignIfChanged('gender', studentDetails.gender, existingStudent.gender)
+
+    assignIfChanged(
+      'dateOfBirth',
+      studentDetails.dateOfBirth ? new Date(studentDetails.dateOfBirth) : null,
+      existingStudent.dateOfBirth
+    )
+
+    assignIfChanged(
+      'religion',
+      studentDetails.religion ?? null,
+      existingStudent.religion
+    )
+
+    assignIfChanged(
+      'bloodGroup',
+      studentDetails.bloodGroup ?? null,
+      existingStudent.bloodGroup
+    )
+
+    assignIfChanged(
+      'height',
+      studentDetails.height ?? null,
+      existingStudent.height
+    )
+
+    assignIfChanged(
+      'weight',
+      studentDetails.weight ?? null,
+      existingStudent.weight
+    )
+
+    assignIfChanged(
+      'address',
+      studentDetails.address ?? null,
+      existingStudent.address
+    )
+
+    assignIfChanged(
+      'phoneNumber',
+      studentDetails.phoneNumber,
+      existingStudent.phoneNumber
+    )
+
+    assignIfChanged('email', studentDetails.email, existingStudent.email)
+
+    assignIfChanged(
+      'admissionDate',
+      studentDetails.admissionDate
+        ? new Date(studentDetails.admissionDate)
+        : null,
+      existingStudent.admissionDate
+    )
+
+    assignIfChanged(
+      'photoUrl',
+      studentDetails.photoUrl ?? existingStudent.photoUrl,
+      existingStudent.photoUrl
+    )
+
+    assignIfChanged(
+      'isActive',
+      studentDetails.isActive ?? existingStudent.isActive,
+      existingStudent.isActive
+    )
+
+    assignIfChanged(
+      'fatherName',
+      studentDetails.fatherName ?? null,
+      existingStudent.fatherName
+    )
+
+    assignIfChanged(
+      'fatherPhone',
+      studentDetails.fatherPhone,
+      existingStudent.fatherPhone
+    )
+
+    assignIfChanged(
+      'fatherEmail',
+      studentDetails.fatherEmail,
+      existingStudent.fatherEmail
+    )
+
+    assignIfChanged(
+      'fatherOccupation',
+      studentDetails.fatherOccupation ?? null,
+      existingStudent.fatherOccupation
+    )
+
+    assignIfChanged(
+      'fatherPhotoUrl',
+      studentDetails.fatherPhotoUrl ?? existingStudent.fatherPhotoUrl,
+      existingStudent.fatherPhotoUrl
+    )
+
+    assignIfChanged(
+      'motherName',
+      studentDetails.motherName ?? null,
+      existingStudent.motherName
+    )
+
+    assignIfChanged(
+      'motherPhone',
+      studentDetails.motherPhone,
+      existingStudent.motherPhone
+    )
+
+    assignIfChanged(
+      'motherEmail',
+      studentDetails.motherEmail,
+      existingStudent.motherEmail
+    )
+
+    assignIfChanged(
+      'motherOccupation',
+      studentDetails.motherOccupation ?? null,
+      existingStudent.motherOccupation
+    )
+
+    assignIfChanged(
+      'motherPhotoUrl',
+      studentDetails.motherPhotoUrl ?? existingStudent.motherPhotoUrl,
+      existingStudent.motherPhotoUrl
+    )
+
+    // Only update if something changed
+    if (Object.keys(updateData).length > 0) {
+      updateData.updatedAt = new Date()
+
+      await tx
+        .update(studentsModel)
+        .set(updateData)
+        .where(eq(studentsModel.studentId, studentId))
+    }
+
+    // =========================
+    // HANDLE FEES SMARTLY
+    // =========================
+
+    const existingFees = await tx.query.studentFeesModel.findMany({
+      where: eq(studentFeesModel.studentId, studentId),
+    })
+
+    const existingFeesMasterIds = existingFees
+      .map((f) => f.feesMasterId)
+      .filter((id): id is number => id !== null)
+
+    const incomingFeesMasterIds = studentFees
+      .map((f) => f.feesMasterId)
+      .filter((id): id is number => id !== null)
+
+    // Fees to add
+    const feesToAdd = incomingFeesMasterIds.filter(
+      (id) => !existingFeesMasterIds.includes(id)
+    )
+
+    // Fees to remove
+    const feesToRemove = existingFeesMasterIds.filter(
+      (id) => !incomingFeesMasterIds.includes(id)
+    )
+
+    // =========================
+    // DELETE REMOVED FEES
+    // =========================
+
+    if (feesToRemove.length > 0) {
+      await tx
+        .delete(studentFeesModel)
+        .where(
+          and(
+            eq(studentFeesModel.studentId, studentId),
+            inArray(studentFeesModel.feesMasterId, feesToRemove)
+          )
+        )
+    }
+
+    // =========================
+    // INSERT NEW FEES
+    // =========================
+
+    if (feesToAdd.length > 0) {
       const feesMasterList = await tx
         .select({
           id: feesMasterModel.feesMasterId,
           amount: feesMasterModel.amount,
         })
         .from(feesMasterModel)
-        .where(inArray(feesMasterModel.feesMasterId, feesMasterIds))
+        .where(inArray(feesMasterModel.feesMasterId, feesToAdd))
 
-      const feesData = studentFees.map((f) => {
-        const fm = feesMasterList.find((x) => x.id === f.feesMasterId)
+      const feesData = feesToAdd.map((feesMasterId) => {
+        const fm = feesMasterList.find((x) => x.id === feesMasterId)
+
         if (!fm) {
-          throw new Error(`Invalid feesMasterId: ${f.feesMasterId}`)
+          throw new Error(`Invalid feesMasterId: ${feesMasterId}`)
         }
 
         return {
           studentId,
-          feesMasterId: f.feesMasterId,
+          feesMasterId,
           amount: fm.amount,
           paidAmount: 0,
           remainingAmount: fm.amount,
@@ -258,10 +454,15 @@ export const updateStudentWithFees = async (data: {
       await tx.insert(studentFeesModel).values(feesData)
     }
 
-    // Return updated student
+    // =========================
+    // RETURN UPDATED STUDENT
+    // =========================
+
     const updatedStudent = await tx.query.studentsModel.findFirst({
       where: eq(studentsModel.studentId, studentId),
-      with: { studentFees: true },
+      with: {
+        studentFees: true,
+      },
     })
 
     return updatedStudent
