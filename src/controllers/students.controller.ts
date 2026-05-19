@@ -1,10 +1,12 @@
-import { Request, Response } from 'express'
+import { NextFunction, Request, Response } from 'express'
 import { requirePermission } from '../services/utils/jwt.utils'
 import {
+  activateStudent,
   createStudent,
   deleteStudent,
   getAllStudents,
   getStudentById,
+  deactivateStudent,
   updateStudentWithFees,
 } from '../services/students.service'
 
@@ -160,5 +162,37 @@ export const deleteStudentController = async (req: any, res: any) => {
     res.status(200).json(result)
   } catch (error: any) {
     res.status(500).json({ message: error.message })
+  }
+}
+
+export const activateStudentController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    requirePermission(req, 'edit_student')
+    const id = Number(req.params.id)
+    const student = await activateStudent(id)
+
+    res.status(200).json(student)
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const deactivateStudentController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    requirePermission(req, 'edit_student')
+    const id = Number(req.params.id)
+    const student = await deactivateStudent(id)
+
+    res.status(200).json(student)
+  } catch (error) {
+    next(error)
   }
 }
