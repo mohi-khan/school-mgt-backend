@@ -12,6 +12,7 @@ import {
   studentPaymentsModel,
   studentsModel,
 } from '../schemas'
+import { BadRequestError } from './utils/errors.utils'
 
 export type StudentDetailsType = {
   admissionNo: number
@@ -519,6 +520,7 @@ export async function getAllStudents(
       divisionName: divisionModel.divisionName,
       sectionName: sectionsModel.sectionName,
       sessionName: sessionsModel.sessionName,
+      
     })
     .from(studentsModel)
     .leftJoin(classesModel, eq(studentsModel.classId, classesModel.classId))
@@ -729,4 +731,34 @@ export const deleteStudent = async (studentId: number) => {
       deletedStudent: student,
     }
   })
+}
+
+export const activateStudent = async (
+  studentId: number,
+) => {
+  const [activateStudent] = await db
+    .update(studentsModel)
+    .set({ isActive: true })
+    .where(eq(studentsModel.studentId, studentId))
+
+  if (!activateStudent) {
+    throw BadRequestError('Student not found')
+  }
+
+  return activateStudent
+}
+
+export const deactivateStudent = async (
+  studentId: number,
+) => {
+  const [activateStudent] = await db
+    .update(studentsModel)
+    .set({ isActive: false })
+    .where(eq(studentsModel.studentId, studentId))
+
+  if (!activateStudent) {
+    throw BadRequestError('Student not found')
+  }
+
+  return activateStudent
 }
