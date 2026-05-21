@@ -53,6 +53,8 @@ export const getOverallSchoolSummary = async () => {
 
   /** -------------------------------
    * TRANSFERS (bank_mfs_cash)
+   * cashOut = Cash → Bank (deposits)
+   * cashIn = Bank → Cash (withdrawals)
    -------------------------------- */
   const [transfers] = await db
     .select({
@@ -61,6 +63,16 @@ export const getOverallSchoolSummary = async () => {
           CASE
             WHEN ${bankMFsCashModel.fromBankAccountId} IS NULL
              AND ${bankMFsCashModel.fromMfsId} IS NULL
+            THEN ${bankMFsCashModel.amount}
+            ELSE 0
+          END
+        )
+      `,
+      cashIn: sql<number>`
+        SUM(
+          CASE
+            WHEN ${bankMFsCashModel.toBankAccountId} IS NULL
+             AND ${bankMFsCashModel.toMfsId} IS NULL
             THEN ${bankMFsCashModel.amount}
             ELSE 0
           END
@@ -90,7 +102,8 @@ export const getOverallSchoolSummary = async () => {
   const cashBalance =
     opening.cash +
     (studentPayments.cash ?? 0) +
-    (income.cash ?? 0) -
+    (income.cash ?? 0) +
+    (transfers.cashIn ?? 0) -
     (expense.cash ?? 0) -
     (transfers.cashOut ?? 0)
 
