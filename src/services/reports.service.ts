@@ -224,7 +224,6 @@ export const incomeReport = async (fromDate: string, toDate: string) => {
     .select({
       id: sql<number>`${generateRandomIntId()}`.as('id'),
       source: sql<'income'>`'income'`.as('source'),
-      name: incomeModel.name,
       incomeHeadId: incomeHeadModel.incomeHeadId,
       incomeHead: incomeHeadModel.incomeHead,
       invoiceNumber: incomeModel.invoiceNumber,
@@ -291,7 +290,6 @@ export const expenseReport = async (fromDate: string, toDate: string) => {
   const result = await db
     .select({
       expenseId: expenseModel.expenseId,
-      name: expenseModel.name,
       expenseHeadId: expenseHeadModel.expenseHeadId,
       expenseHead: expenseHeadModel.expenseHead,
       invoiceNumber: expenseModel.invoiceNumber,
