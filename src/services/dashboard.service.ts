@@ -3,7 +3,9 @@ import { sql } from 'drizzle-orm'
 import {
   bankAccountModel,
   bankMFsCashModel,
+  expenseHeadModel,
   expenseModel,
+  incomeHeadModel,
   incomeModel,
   mfsModel,
   openingBalanceModel,
@@ -138,17 +140,20 @@ const MONTHS = [
 export const getCurrentYearMonthlyIncome = async () => {
   const currentYear = new Date().getFullYear()
 
-  /* -------- Income from income table -------- */
   const incomeData = await db
     .select({
       month: sql<number>`MONTH(${incomeModel.date})`.as('month'),
+      incomeHead: incomeHeadModel.incomeHead,
       amount: sql<number>`SUM(${incomeModel.amount})`.as('amount'),
     })
     .from(incomeModel)
+    .leftJoin(
+      incomeHeadModel,
+      sql`${incomeModel.incomeHeadId} = ${incomeHeadModel.incomeHeadId}`
+    )
     .where(sql`YEAR(${incomeModel.date}) = ${currentYear}`)
-    .groupBy(sql`MONTH(${incomeModel.date})`)
+    .groupBy(sql`MONTH(${incomeModel.date}), ${incomeModel.incomeHeadId}`)
 
-  /* -------- Income from student payments -------- */
   const studentPaymentData = await db
     .select({
       month: sql<number>`MONTH(${studentPaymentsModel.paymentDate})`.as(
@@ -160,17 +165,67 @@ export const getCurrentYearMonthlyIncome = async () => {
     .where(sql`YEAR(${studentPaymentsModel.paymentDate}) = ${currentYear}`)
     .groupBy(sql`MONTH(${studentPaymentsModel.paymentDate})`)
 
-  /* -------- Merge & sum per month -------- */
-  const monthMap: Record<number, number> = {}
+  const monthMap: Record<
+    number,
+    {
+      totalAmount: number
+      incomeHeads: { incomeHead: string; amount: number }[]
+    }
+  > = {}
 
-  for (const row of [...incomeData, ...studentPaymentData]) {
-    monthMap[row.month] = (monthMap[row.month] || 0) + Number(row.amount)
+  // income heads
+  for (const row of incomeData) {
+    const month = row.month
+
+    if (!monthMap[month]) {
+      monthMap[month] = {
+        totalAmount: 0,
+        incomeHeads: [],
+      }
+    }
+
+    const amount = Number(row.amount || 0)
+
+    monthMap[month].totalAmount += amount
+
+    monthMap[month].incomeHeads.push({
+      incomeHead: row.incomeHead || 'Unknown',
+      amount,
+    })
   }
 
-  return Object.entries(monthMap).map(([month, amount]) => ({
-    id: Number(month),
+  // student payments
+  for (const row of studentPaymentData) {
+    const month = row.month
+
+    if (!monthMap[month]) {
+      monthMap[month] = {
+        totalAmount: 0,
+        incomeHeads: [],
+      }
+    }
+
+    const amount = Number(row.amount || 0)
+
+    monthMap[month].totalAmount += amount
+
+    monthMap[month].incomeHeads.push({
+      incomeHead: 'Student Payment',
+      amount,
+    })
+  }
+
+  // FINAL SERIALIZATION STEP
+  return Object.entries(monthMap).map(([month, data], index) => ({
+    id: index + 1,
     month: MONTHS[Number(month) - 1],
-    amount,
+    totalAmount: data.totalAmount,
+
+    incomeHeads: data.incomeHeads.map((h, i) => ({
+      id: i + 1, // serial per month
+      incomeHead: h.incomeHead,
+      amount: h.amount,
+    })),
   }))
 }
 
@@ -180,15 +235,54 @@ export const getCurrentYearMonthlyExpense = async () => {
   const expenseData = await db
     .select({
       month: sql<number>`MONTH(${expenseModel.date})`.as('month'),
+      expenseHead: expenseHeadModel.expenseHead,
       amount: sql<number>`SUM(${expenseModel.amount})`.as('amount'),
     })
     .from(expenseModel)
+    .leftJoin(
+      expenseHeadModel,
+      sql`${expenseModel.expenseHeadId} = ${expenseHeadModel.expenseHeadId}`
+    )
     .where(sql`YEAR(${expenseModel.date}) = ${currentYear}`)
-    .groupBy(sql`MONTH(${expenseModel.date})`)
+    .groupBy(sql`MONTH(${expenseModel.date}), ${expenseModel.expenseHeadId}`)
 
-  return expenseData.map((item) => ({
-    id: item.month,
-    month: MONTHS[item.month - 1],
-    amount: Number(item.amount),
+  const monthMap: Record<
+    number,
+    {
+      totalAmount: number
+      expenseHeads: { expenseHead: string; amount: number }[]
+    }
+  > = {}
+
+  for (const row of expenseData) {
+    const month = row.month
+
+    if (!monthMap[month]) {
+      monthMap[month] = {
+        totalAmount: 0,
+        expenseHeads: [],
+      }
+    }
+
+    const amount = Number(row.amount || 0)
+
+    monthMap[month].totalAmount += amount
+
+    monthMap[month].expenseHeads.push({
+      expenseHead: row.expenseHead || 'Unknown',
+      amount,
+    })
+  }
+
+  return Object.entries(monthMap).map(([month, data], index) => ({
+    id: index + 1,
+    month: MONTHS[Number(month) - 1],
+    totalAmount: data.totalAmount,
+
+    expenseHeads: data.expenseHeads.map((h, i) => ({
+      id: i + 1,
+      expenseHead: h.expenseHead,
+      amount: h.amount,
+    })),
   }))
 }
