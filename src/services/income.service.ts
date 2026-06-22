@@ -27,7 +27,6 @@ export const getAllIncomes = async () => {
       incomeId: incomeModel.incomeId,
       incomeHeadId: incomeModel.incomeHeadId,
       incomeHead: incomeHeadModel.incomeHead,
-      name: incomeModel.name,
       invoiceNumber: incomeModel.invoiceNumber,
       date: incomeModel.date,
       method: incomeModel.method,
