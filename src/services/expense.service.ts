@@ -34,7 +34,6 @@ export const getAllExpenses = async () => {
       expenseId: expenseModel.expenseId,
       expenseHeadId: expenseModel.expenseHeadId,
       expenseHead: expenseHeadModel.expenseHead,
-      name: expenseModel.name,
       invoiceNumber: expenseModel.invoiceNumber,
       date: expenseModel.date,
       method: expenseModel.method,
