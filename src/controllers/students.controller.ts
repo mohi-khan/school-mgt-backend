@@ -17,6 +17,19 @@ export const createStudentController = async (req: Request, res: Response) => {
     const files = req.files as { [fieldname: string]: Express.Multer.File[] }
     const baseUrl = `${req.protocol}://${req.get('host')}/uploads/`
 
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const studentDetailsData = {
+      ...req.body.studentDetails,
+      tenantId,
+    }
+    const studentFeesData = {
+      ...req.body.studentFees,
+      tenantId,
+    }
+
     // Normalize input to array
     const payload = Array.isArray(req.body) ? req.body : [req.body]
 
@@ -40,7 +53,16 @@ export const createStudentController = async (req: Request, res: Response) => {
       if (files?.motherPhotoUrl?.[0])
         studentDetails.motherPhotoUrl = `${baseUrl}${files.motherPhotoUrl[0].filename}`
 
-      const student = await createStudent({ studentDetails, studentFees })
+      const student = await createStudent({
+        studentDetails: {
+          ...studentDetails,
+          tenantId,
+        },
+        studentFees: studentFees.map((fee: any) => ({
+          ...fee,
+          tenantId,
+        })),
+      })
       results.push(student)
     }
 
@@ -67,12 +89,27 @@ export const updateStudentController = async (req: Request, res: Response) => {
       res.status(400).json({ error: 'Invalid student ID' })
     }
 
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+
     console.log('📥 Received files:', req.files)
     console.log('📥 Received body:', req.body)
 
     // Parse JSON from FormData
-    const studentDetails = JSON.parse(req.body.studentDetails)
-    const studentFees = JSON.parse(req.body.studentFees)
+    const studentDetails =
+      typeof req.body.studentDetails === 'string'
+        ? JSON.parse(req.body.studentDetails)
+        : req.body.studentDetails
+    const studentFees =
+      typeof req.body.studentFees === 'string'
+        ? JSON.parse(req.body.studentFees)
+        : req.body.studentFees
+    studentDetails.tenantId = tenantId
+    studentFees.forEach((fee: any) => {
+      fee.tenantId = tenantId
+    })
 
     if (!studentDetails || !Array.isArray(studentFees)) {
       res.status(400).json({
@@ -118,9 +155,16 @@ export const getAllStudentsController = async (req: Request, res: Response) => {
 
     const classId = req.query.classId ? Number(req.query.classId) : null
     const sectionId = req.query.sectionId ? Number(req.query.sectionId) : null
-    const divisionId = req.query.divisionId ? Number(req.query.divisionId) : null
+    const divisionId = req.query.divisionId
+      ? Number(req.query.divisionId)
+      : null
 
-    const data = await getAllStudents(classId, sectionId, divisionId)
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+
+    const data = await getAllStudents(tenantId, classId, sectionId, divisionId)
 
     res.json(data)
   } catch (error) {

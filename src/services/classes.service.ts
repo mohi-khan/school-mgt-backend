@@ -14,6 +14,11 @@ export const createClasses = async (data: {
   sectionIds: number[]
 }) => {
   const { classData, sectionIds } = data
+  const tenantId = classData.tenantId
+
+  if (tenantId == null) {
+    throw BadRequestError('Tenant ID is required')
+  }
 
   try {
     return await db.transaction(async (tx) => {
@@ -44,6 +49,7 @@ export const createClasses = async (data: {
         const sectionRecords = sectionIds.map((sectionId) => ({
           classId,
           sectionId,
+          tenantId: classData.tenantId,
           createdAt: new Date(),
         }))
 
@@ -58,12 +64,18 @@ export const createClasses = async (data: {
 }
 
 // Get All
-export const getAllClasses = async () => {
+export const getAllClasses = async (tenantId: number) => {
   // 1) Fetch all classes
-  const classes = await db.select().from(classesModel)
+  const classes = await db
+    .select()
+    .from(classesModel)
+    .where(eq(classesModel.tenantId, tenantId))
 
   // 2) Fetch all class-section mappings
-  const classSections = await db.select().from(classSectionsModel)
+  const classSections = await db
+    .select()
+    .from(classSectionsModel)
+    .where(eq(classSectionsModel.tenantId, tenantId))
 
   // 4) Build final response in shape of createClassSchema
   const result = classes.map((cls) => {
@@ -111,6 +123,11 @@ export const editClasses = async (
   }
 ) => {
   const { classData, sectionIds } = data
+  const tenantId = classData.tenantId
+
+  if (tenantId == null) {
+    throw BadRequestError('Tenant ID is required')
+  }
 
   return await db.transaction(async (tx) => {
     // 1️⃣ Update classes table
@@ -136,6 +153,7 @@ export const editClasses = async (
       const entries = sectionIds.map((sectionId) => ({
         classId,
         sectionId,
+        tenantId,
         createdAt: new Date(),
       }))
 
@@ -152,12 +170,14 @@ export const editClasses = async (
 export const deleteClassesService = async (classId: number) => {
   return await db.transaction(async (tx) => {
     // Delete related classSections first
-    await tx.delete(classSectionsModel).where(eq(classSectionsModel.classId, classId));
+    await tx
+      .delete(classSectionsModel)
+      .where(eq(classSectionsModel.classId, classId))
 
     // Delete the class itself
-    await tx.delete(classesModel).where(eq(classesModel.classId, classId));
+    await tx.delete(classesModel).where(eq(classesModel.classId, classId))
 
     // Return the classId to indicate success
-    return { deletedClassId: classId };
-  });
-};
+    return { deletedClassId: classId }
+  })
+}

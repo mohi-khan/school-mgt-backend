@@ -70,6 +70,7 @@ export const createStudent = async (data: {
   studentFees: {
     studentId: number | null
     feesMasterId: number
+    tenantId: number
     amount?: number
   }[]
 }) => {
@@ -88,6 +89,7 @@ export const createStudent = async (data: {
         divisionId: data.studentDetails.divisionId ?? null,
         sectionId: data.studentDetails.sectionId ?? null,
         sessionId: data.studentDetails.sessionId ?? null,
+        tenantId: data.studentDetails.tenantId,
         firstName: data.studentDetails.firstName,
         lastName: data.studentDetails.lastName,
         gender: data.studentDetails.gender,
@@ -143,6 +145,7 @@ export const createStudent = async (data: {
         return {
           studentId,
           feesMasterId: f.feesMasterId,
+          tenantId: data.studentDetails.tenantId,
           amount: fm.amount,
           paidAmount: 0,
           remainingAmount: fm.amount,
@@ -176,7 +179,10 @@ export const updateStudentWithFees = async (data: {
     // =========================
 
     const existingStudent = await tx.query.studentsModel.findFirst({
-      where: eq(studentsModel.studentId, studentId),
+      where: and(
+        eq(studentsModel.studentId, studentId),
+        eq(studentsModel.tenantId, studentDetails.tenantId)
+      ),
     })
 
     if (!existingStudent) {
@@ -378,7 +384,12 @@ export const updateStudentWithFees = async (data: {
       await tx
         .update(studentsModel)
         .set(updateData)
-        .where(eq(studentsModel.studentId, studentId))
+        .where(
+          and(
+            eq(studentsModel.studentId, studentId),
+            eq(studentsModel.tenantId, studentDetails.tenantId)
+          )
+        )
     }
 
     // =========================
@@ -386,7 +397,10 @@ export const updateStudentWithFees = async (data: {
     // =========================
 
     const existingFees = await tx.query.studentFeesModel.findMany({
-      where: eq(studentFeesModel.studentId, studentId),
+      where: and(
+        eq(studentFeesModel.studentId, studentId),
+        eq(studentFeesModel.tenantId, studentDetails.tenantId)
+      ),
     })
 
     const existingFeesMasterIds = existingFees
@@ -417,6 +431,7 @@ export const updateStudentWithFees = async (data: {
         .where(
           and(
             eq(studentFeesModel.studentId, studentId),
+            eq(studentFeesModel.tenantId, studentDetails.tenantId),
             inArray(studentFeesModel.feesMasterId, feesToRemove)
           )
         )
@@ -445,6 +460,7 @@ export const updateStudentWithFees = async (data: {
         return {
           studentId,
           feesMasterId,
+          tenantId: studentDetails.tenantId,
           amount: fm.amount,
           paidAmount: 0,
           remainingAmount: fm.amount,
@@ -471,15 +487,17 @@ export const updateStudentWithFees = async (data: {
 }
 
 export async function getAllStudents(
+  tenantId: number,
   classId?: number | null,
   sectionId?: number | null,
   divisionId?: number | null
 ) {
-  const conditions: any[] = []
+  const conditions: any[] = [eq(studentsModel.tenantId, tenantId)]
 
   if (classId) conditions.push(eq(studentsModel.classId, classId))
   if (sectionId) conditions.push(eq(studentsModel.sectionId, sectionId))
   if (divisionId) conditions.push(eq(studentsModel.divisionId, divisionId))
+  conditions.push(eq(studentsModel.tenantId, tenantId))
 
   const baseQuery = db
     .select({
@@ -520,7 +538,6 @@ export async function getAllStudents(
       divisionName: divisionModel.divisionName,
       sectionName: sectionsModel.sectionName,
       sessionName: sessionsModel.sessionName,
-      
     })
     .from(studentsModel)
     .leftJoin(classesModel, eq(studentsModel.classId, classesModel.classId))
@@ -572,7 +589,12 @@ export async function getAllStudents(
       feesTypeModel,
       eq(feesMasterModel.feesTypeId, feesTypeModel.feesTypeId)
     )
-    .where(inArray(studentFeesModel.studentId, studentIds))
+    .where(
+      and(
+        inArray(studentFeesModel.studentId, studentIds),
+        eq(studentFeesModel.tenantId, tenantId)
+      )
+    )
 
   const feeMap: Record<number, any[]> = {}
 
@@ -733,9 +755,7 @@ export const deleteStudent = async (studentId: number) => {
   })
 }
 
-export const activateStudent = async (
-  studentId: number,
-) => {
+export const activateStudent = async (studentId: number) => {
   const [activateStudent] = await db
     .update(studentsModel)
     .set({ isActive: true })
@@ -748,9 +768,7 @@ export const activateStudent = async (
   return activateStudent
 }
 
-export const deactivateStudent = async (
-  studentId: number,
-) => {
+export const deactivateStudent = async (studentId: number) => {
   const [activateStudent] = await db
     .update(studentsModel)
     .set({ isActive: false })

@@ -13,7 +13,12 @@ export const getOverallSchoolSummaryController = async (
   try {
     requirePermission(req, 'view_dashboard')
 
-    const summary = await getOverallSchoolSummary()
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+
+    const summary = await getOverallSchoolSummary(tenantId)
 
     res.status(200).json({
       success: true,
@@ -35,7 +40,12 @@ export const getCurrentYearMonthlyIncomeController = async (
 ) => {
   try {
     requirePermission(req, 'view_dashboard')
-    const data = await getCurrentYearMonthlyIncome()
+
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const data = await getCurrentYearMonthlyIncome(tenantId)
 
     res.status(200).json(data)
   } catch (error) {
@@ -54,7 +64,12 @@ export const getCurrentYearMonthlyExpenseController = async (
 ) => {
   try {
     requirePermission(req, 'view_dashboard')
-    const data = await getCurrentYearMonthlyExpense()
+
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const data = await getCurrentYearMonthlyExpense(tenantId)
 
     res.status(200).json(data)
   } catch (error) {

@@ -32,6 +32,7 @@ const registerSchema = z
     confirmPassword: z.string(),
     active: z.boolean().default(true),
     roleId: z.number(),
+    tenantId: z.number(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -92,10 +93,10 @@ export const register = async (
   next: NextFunction
 ) => {
   try {
-    const { username, password, active, roleId } =
+    const { username, password, active, roleId, tenantId } =
       registerSchema.parse(req.body)
     const user = await createUser(
-      { username, password, active, roleId },
+      { username, password, active, roleId, tenantId },
     )
 
     res.status(201).json({
@@ -105,6 +106,7 @@ export const register = async (
           username: user.username,
           password: user.password,
           roleId: user.roleId,
+          tenantId,
           active: user.active,
         },
       },

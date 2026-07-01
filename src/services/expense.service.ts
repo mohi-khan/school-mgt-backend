@@ -27,7 +27,7 @@ export const createExpense = async (
 }
 
 // Get All
-export const getAllExpenses = async () => {
+export const getAllExpenses = async (tenantId: number) => {
   return await db
     .select({
       // expense table fields
@@ -52,6 +52,7 @@ export const getAllExpenses = async () => {
       updatedAt: expenseModel.updatedAt,
     })
     .from(expenseModel)
+    .where(eq(expenseModel.tenantId, tenantId))
     .leftJoin(
       expenseHeadModel,
       eq(expenseModel.expenseHeadId, expenseHeadModel.expenseHeadId)

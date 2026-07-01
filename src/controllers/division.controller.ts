@@ -25,7 +25,15 @@ export const createDivisionController = async (
 ) => {
   try {
     requirePermission(req, 'create_division')
-    const divisionData = createDivisionSchema.parse(req.body)
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const data = {
+      ...req.body,
+      tenantId,
+    }
+    const divisionData = createDivisionSchema.parse(data)
     const division = await createDivision(divisionData)
 
     res.status(201).json({
@@ -44,7 +52,11 @@ export const getAllDivisionsController = async (
 ) => {
   try {
     requirePermission(req, 'view_division')
-    const divisions = await getAllDivisions()
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const divisions = await getAllDivisions(tenantId)
 
     res.status(200).json(divisions)
   } catch (error) {

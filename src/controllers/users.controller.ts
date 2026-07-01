@@ -8,7 +8,11 @@ export const getUserList = async (
 ) => {
   try {
     requirePermission(req, 'view_user')
-    const users = await getUsers()
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const users = await getUsers(tenantId)
     res.json(users)
   } catch (err) {
     next(err)

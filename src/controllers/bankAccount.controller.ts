@@ -25,7 +25,15 @@ export const createBankAccountController = async (
 ) => {
   try {
     requirePermission(req, 'create_bank_account')
-    const bankAccountData = createBankAccountSchema.parse(req.body)
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const data = {
+      ...req.body,
+      tenantId,
+    }
+    const bankAccountData = createBankAccountSchema.parse(data)
     const bankAccount = await createBankAccount(bankAccountData)
 
     res.status(201).json({
@@ -44,7 +52,11 @@ export const getAllBankAccountsController = async (
 ) => {
   try {
     requirePermission(req, 'view_bank_account')
-    const bankAccounts = await getAllBankAccounts()
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const bankAccounts = await getAllBankAccounts(tenantId)
 
     res.status(200).json(bankAccounts)
   } catch (error) {

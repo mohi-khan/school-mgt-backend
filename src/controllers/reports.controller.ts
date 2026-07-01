@@ -24,9 +24,15 @@ export const studentPaymentReportController = async (
       })
     }
 
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+
     const data = await studentPaymentReport(
       fromDate as string,
-      toDate as string
+      toDate as string,
+      tenantId
     )
 
     res.status(200).json(data)
@@ -53,9 +59,15 @@ export const studentBankPaymentReportController = async (
       })
     }
 
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+
     const data = await studentBankPaymentReport(
       fromDate as string,
-      toDate as string
+      toDate as string,
+      tenantId
     )
 
     res.status(200).json(data)
@@ -82,9 +94,15 @@ export const studentMfsPaymentReportController = async (
       })
     }
 
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+
     const data = await studentMfsPaymentReport(
       fromDate as string,
-      toDate as string
+      toDate as string,
+      tenantId
     )
 
     res.status(200).json(data)
@@ -111,9 +129,15 @@ export const studentCashPaymentReportController = async (
       })
     }
 
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+
     const data = await studentCashPaymentReport(
       fromDate as string,
-      toDate as string
+      toDate as string,
+      tenantId
     )
 
     res.status(200).json(data)
@@ -131,7 +155,16 @@ export const incomeReportController = async (req: Request, res: Response) => {
     requirePermission(req, 'view_report')
     const { fromDate, toDate } = req.query
 
-    const data = await incomeReport(fromDate as string, toDate as string)
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+
+    const data = await incomeReport(
+      fromDate as string,
+      toDate as string,
+      tenantId
+    )
 
     res.status(200).json(data)
   } catch (error) {
@@ -148,7 +181,16 @@ export const expenseReportController = async (req: Request, res: Response) => {
     requirePermission(req, 'view_report')
     const { fromDate, toDate } = req.query
 
-    const data = await expenseReport(fromDate as string, toDate as string)
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+
+    const data = await expenseReport(
+      fromDate as string,
+      toDate as string,
+      tenantId
+    )
 
     res.status(200).json(data)
   } catch (error) {
@@ -160,7 +202,10 @@ export const expenseReportController = async (req: Request, res: Response) => {
   }
 }
 
-export const transactionReportController = async (req: Request, res: Response) => {
+export const transactionReportController = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const { fromDate, toDate } = req.query
 
@@ -170,7 +215,16 @@ export const transactionReportController = async (req: Request, res: Response) =
       })
     }
 
-    const data = await getTransactionReport(fromDate as string, toDate as string)
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+
+    const data = await getTransactionReport(
+      fromDate as string,
+      toDate as string,
+      tenantId
+    )
 
     res.status(200).json(data)
   } catch (error: any) {

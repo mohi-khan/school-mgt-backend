@@ -25,8 +25,16 @@ export const createExamResultController = async (
 ) => {
   try {
     requirePermission(req, 'create_exam_result')
-    const examResultData = createExamResultSchema.parse(req.body)
-    console.log("🚀 ~ createExamResultController ~ req.body:", req.body)
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const data = {
+      ...req.body,
+      tenantId,
+    }
+    const examResultData = createExamResultSchema.parse(data)
+    console.log("🚀 ~ createExamResultController ~ data:", data)
     const examResult = await createExamResult(examResultData)
 
     res.status(201).json({
@@ -45,7 +53,11 @@ export const getAllExamResultsController = async (
 ) => {
   try {
     requirePermission(req, 'view_exam_result')
-    const examResults = await getAllExamResults()
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const examResults = await getAllExamResults(tenantId)
 
     res.status(200).json(examResults)
   } catch (error) {

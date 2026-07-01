@@ -5,7 +5,10 @@ import { BadRequestError } from './utils/errors.utils'
 
 // Create
 export const createBankAccount = async (
-  bankAccountData: Omit<NewBankAccount, 'bankAccountId' | 'updatedAt' | 'updatedBy'>
+  bankAccountData: Omit<
+    NewBankAccount,
+    'bankAccountId' | 'updatedAt' | 'updatedBy'
+  >
 ) => {
   try {
     const [newBankAccount] = await db.insert(bankAccountModel).values({
@@ -20,8 +23,11 @@ export const createBankAccount = async (
 }
 
 // Get All
-export const getAllBankAccounts = async () => {
-  return await db.select().from(bankAccountModel)
+export const getAllBankAccounts = async (tenantId: number) => {
+  return await db
+    .select()
+    .from(bankAccountModel)
+    .where(eq(bankAccountModel.tenantId, tenantId))
 }
 
 // Get By Id
@@ -60,6 +66,6 @@ export const editBankAccount = async (
 export const deleteBankAccount = async (bankAccountId: number) => {
   const result = await db
     .delete(bankAccountModel)
-    .where(eq(bankAccountModel.bankAccountId, bankAccountId));
-  return { message: "Fees Group deleted successfully" };
-};
+    .where(eq(bankAccountModel.bankAccountId, bankAccountId))
+  return { message: 'Fees Group deleted successfully' }
+}

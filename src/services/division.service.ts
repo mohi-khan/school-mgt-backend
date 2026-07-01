@@ -20,8 +20,11 @@ export const createDivision = async (
 }
 
 // Get All
-export const getAllDivisions = async () => {
-  return await db.select().from(divisionModel)
+export const getAllDivisions = async (tenantId: number) => {
+  return await db
+    .select()
+    .from(divisionModel)
+    .where(eq(divisionModel.tenantId, tenantId))
 }
 
 // Get By Id
@@ -60,6 +63,6 @@ export const editDivision = async (
 export const deleteDivision = async (divisionId: number) => {
   const result = await db
     .delete(divisionModel)
-    .where(eq(divisionModel.divisionId, divisionId));
-  return { message: "Fees Group deleted successfully" };
-};
+    .where(eq(divisionModel.divisionId, divisionId))
+  return { message: 'Fees Group deleted successfully' }
+}

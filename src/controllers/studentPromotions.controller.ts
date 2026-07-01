@@ -8,9 +8,16 @@ export const promoteStudentsController = async (
 ) => {
   try {
     requirePermission(req, 'promote_student')
-    const input = req.body
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const data = {
+      ...req.body,
+      tenantId,
+    }
 
-    const result = await promoteStudents(input)
+    const result = await promoteStudents(data)
 
     res.status(200).json(result)
   } catch (err: any) {

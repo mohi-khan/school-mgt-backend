@@ -25,7 +25,15 @@ export const createFeesTypeController = async (
 ) => {
   try {
     requirePermission(req, 'create_fees_type')
-    const feesTypeData = createFeesTypeSchema.parse(req.body)
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const data = {
+      ...req.body,
+      tenantId,
+    }
+    const feesTypeData = createFeesTypeSchema.parse(data)
     const feesType = await createFeesType(feesTypeData)
 
     res.status(201).json({
@@ -44,7 +52,11 @@ export const getAllFeesTypesController = async (
 ) => {
   try {
     requirePermission(req, 'view_fees_type')
-    const feesTypes = await getAllFeesTypes()
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const feesTypes = await getAllFeesTypes(tenantId)
 
     res.status(200).json(feesTypes)
   } catch (error) {

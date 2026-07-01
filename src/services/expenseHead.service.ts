@@ -5,7 +5,10 @@ import { BadRequestError } from './utils/errors.utils'
 
 // Create
 export const createExpenseHead = async (
-  expenseHeadData: Omit<NewExpenseHead, 'expenseHeadId' | 'updatedAt' | 'updatedBy'>
+  expenseHeadData: Omit<
+    NewExpenseHead,
+    'expenseHeadId' | 'updatedAt' | 'updatedBy'
+  >
 ) => {
   try {
     const [newExpenseHead] = await db.insert(expenseHeadModel).values({
@@ -20,8 +23,11 @@ export const createExpenseHead = async (
 }
 
 // Get All
-export const getAllExpenseHeads = async () => {
-  return await db.select().from(expenseHeadModel)
+export const getAllExpenseHeads = async (tenantId: number) => {
+  return await db
+    .select()
+    .from(expenseHeadModel)
+    .where(eq(expenseHeadModel.tenantId, tenantId))
 }
 
 // Get By Id
@@ -60,6 +66,6 @@ export const editExpenseHead = async (
 export const deleteExpenseHead = async (expenseHeadId: number) => {
   const result = await db
     .delete(expenseHeadModel)
-    .where(eq(expenseHeadModel.expenseHeadId, expenseHeadId));
-  return { message: "Fees Group deleted successfully" };
-};
+    .where(eq(expenseHeadModel.expenseHeadId, expenseHeadId))
+  return { message: 'Fees Group deleted successfully' }
+}

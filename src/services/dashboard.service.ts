@@ -1,5 +1,5 @@
 import { db } from '../config/database'
-import { sql } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 import {
   bankAccountModel,
   bankMFsCashModel,
@@ -12,7 +12,7 @@ import {
   studentPaymentsModel,
 } from '../schemas'
 
-export const getOverallSchoolSummary = async () => {
+export const getOverallSchoolSummary = async (tenantId: number) => {
   /** -------------------------------
    * OPENING BALANCE
    -------------------------------- */
@@ -22,6 +22,7 @@ export const getOverallSchoolSummary = async () => {
       amount: openingBalanceModel.amount,
     })
     .from(openingBalanceModel)
+    .where(eq(openingBalanceModel.tenantId, tenantId))
 
   const opening = { cash: 0, bank: 0, mfs: 0 }
 
@@ -137,7 +138,7 @@ const MONTHS = [
   'December',
 ]
 
-export const getCurrentYearMonthlyIncome = async () => {
+export const getCurrentYearMonthlyIncome = async (tenantId: number) => {
   const currentYear = new Date().getFullYear()
 
   const incomeData = await db
@@ -151,7 +152,12 @@ export const getCurrentYearMonthlyIncome = async () => {
       incomeHeadModel,
       sql`${incomeModel.incomeHeadId} = ${incomeHeadModel.incomeHeadId}`
     )
-    .where(sql`YEAR(${incomeModel.date}) = ${currentYear}`)
+    .where(
+      and(
+        sql`YEAR(${incomeModel.date}) = ${currentYear}`,
+        eq(incomeModel.tenantId, tenantId)
+      )
+    )
     .groupBy(sql`MONTH(${incomeModel.date}), ${incomeModel.incomeHeadId}`)
 
   const studentPaymentData = await db
@@ -229,7 +235,7 @@ export const getCurrentYearMonthlyIncome = async () => {
   }))
 }
 
-export const getCurrentYearMonthlyExpense = async () => {
+export const getCurrentYearMonthlyExpense = async (tenantId: number) => {
   const currentYear = new Date().getFullYear()
 
   const expenseData = await db
@@ -243,7 +249,12 @@ export const getCurrentYearMonthlyExpense = async () => {
       expenseHeadModel,
       sql`${expenseModel.expenseHeadId} = ${expenseHeadModel.expenseHeadId}`
     )
-    .where(sql`YEAR(${expenseModel.date}) = ${currentYear}`)
+    .where(
+      and(
+        sql`YEAR(${expenseModel.date}) = ${currentYear}`,
+        eq(expenseModel.tenantId, tenantId)
+      )
+    )
     .groupBy(sql`MONTH(${expenseModel.date}), ${expenseModel.expenseHeadId}`)
 
   const monthMap: Record<

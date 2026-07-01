@@ -20,8 +20,11 @@ export const createFeesType = async (
 }
 
 // Get All
-export const getAllFeesTypes = async () => {
-  return await db.select().from(feesTypeModel)
+export const getAllFeesTypes = async (tenantId: number) => {
+  return await db
+    .select()
+    .from(feesTypeModel)
+    .where(eq(feesTypeModel.tenantId, tenantId))
 }
 
 // Get By Id
@@ -60,6 +63,6 @@ export const editFeesType = async (
 export const deleteFeesType = async (feesTypeId: number) => {
   const result = await db
     .delete(feesTypeModel)
-    .where(eq(feesTypeModel.feesTypeId, feesTypeId));
-  return { message: "Fees Type deleted successfully" };
-};
+    .where(eq(feesTypeModel.feesTypeId, feesTypeId))
+  return { message: 'Fees Type deleted successfully' }
+}

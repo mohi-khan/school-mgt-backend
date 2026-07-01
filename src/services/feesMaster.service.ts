@@ -29,7 +29,7 @@ export const createFeesMaster = async (
   }
 }
 // Get All
-export const getAllFeesMasters = async () => {
+export const getAllFeesMasters = async (tenantId: number) => {
   const records = await db
     .select({
       feesMasterId: feesMasterModel.feesMasterId,
@@ -47,6 +47,7 @@ export const getAllFeesMasters = async () => {
       updatedAt: feesMasterModel.updatedAt,
     })
     .from(feesMasterModel)
+    .where(eq(feesMasterModel.tenantId, tenantId))
     .innerJoin(
       feesGroupModel,
       eq(feesMasterModel.feesGroupId, feesGroupModel.feesGroupId)

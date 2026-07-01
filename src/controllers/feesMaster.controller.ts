@@ -36,8 +36,16 @@ export const createFeesMasterController = async (
 ) => {
   try {
     requirePermission(req, 'create_fees_master')
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const data = {
+      ...req.body,
+      tenantId,
+    }
 
-    const payload = Array.isArray(req.body) ? req.body : [req.body]
+    const payload = Array.isArray(data) ? data : [data]
 
     // validate each item using SAME schema
     const validatedData = payload.map((item) =>
@@ -62,7 +70,11 @@ export const getAllFeesMastersController = async (
 ) => {
   try {
     requirePermission(req, 'view_fees_master')
-    const feesMasters = await getAllFeesMasters()
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const feesMasters = await getAllFeesMasters(tenantId)
 
     res.status(200).json(feesMasters)
   } catch (error) {
