@@ -93,21 +93,32 @@ export const register = async (
   next: NextFunction
 ) => {
   try {
-    const { username, password, active, roleId, tenantId } =
-      registerSchema.parse(req.body)
-    const user = await createUser(
-      { username, password, active, roleId, tenantId },
-    )
+    const {
+      username,
+      password,
+      active,
+      roleId,
+      tenantId,
+    } = registerSchema.parse(req.body)
+    const user = await createUser(db, {
+      username,
+      password,
+      active,
+      roleId,
+      tenantId,
+      isPasswordResetRequired: true,
+      createdBy: req?.user?.userId || 0,
+    })
 
     res.status(201).json({
       status: 'success',
       data: {
         user: {
           username: user.username,
-          password: user.password,
           roleId: user.roleId,
-          tenantId,
           active: user.active,
+          tenantId: user.tenantId,
+          isPasswordResetRequired: true,
         },
       },
     })

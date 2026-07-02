@@ -66,7 +66,7 @@ export const createUser = async (
     username: userData.username,
     password: hashedPassword,
     active: userData.active ?? true,
-    isPasswordResetRequired: userData.isPasswordResetRequired ?? true,
+    isPasswordResetRequired: true,
     roleId: userData.roleId,
     tenantId: userData.tenantId,
   })
