@@ -39,6 +39,9 @@ export const createOpeningBalance = async (
 }
 
 // Get All
-export const getAllOpeningBalances = async () => {
-  return await db.select().from(openingBalanceModel)
+export const getAllOpeningBalances = async (tenantId: number) => {
+  return await db
+    .select()
+    .from(openingBalanceModel)
+    .where(eq(openingBalanceModel.tenantId, tenantId))
 }

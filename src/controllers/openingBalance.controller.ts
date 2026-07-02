@@ -20,7 +20,15 @@ export const createOpeningBalanceController = async (
 ) => {
   try {
     requirePermission(req, 'create_opening_balance')
-    const openingBalanceData = createOpeningBalanceSchema.parse(req.body)
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const data = {
+      ...req.body,
+      tenantId,
+    }
+    const openingBalanceData = createOpeningBalanceSchema.parse(data)
     const openingBalance = await createOpeningBalance(openingBalanceData)
 
     res.status(201).json({
@@ -39,7 +47,11 @@ export const getAllOpeningBalancesController = async (
 ) => {
   try {
     requirePermission(req, 'view_opening_balance')
-    const openingBalances = await getAllOpeningBalances()
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const openingBalances = await getAllOpeningBalances(tenantId)
 
     res.status(200).json(openingBalances)
   } catch (error) {

@@ -33,7 +33,15 @@ export const createExpenseController = async (
 ) => {
   try {
     requirePermission(req, 'create_expense')
-    const expenseData = createExpenseSchema.parse(req.body)
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const data = {
+      ...req.body,
+      tenantId,
+    }
+    const expenseData = createExpenseSchema.parse(data)
     const expense = await createExpense(expenseData)
 
     res.status(201).json({
@@ -52,7 +60,11 @@ export const getAllExpensesController = async (
 ) => {
   try {
     requirePermission(req, 'view_expense')
-    const expenses = await getAllExpenses()
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const expenses = await getAllExpenses(tenantId)
 
     res.status(200).json(expenses)
   } catch (error) {

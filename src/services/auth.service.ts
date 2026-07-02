@@ -7,7 +7,7 @@ import {
   hashPassword,
   validatePassword,
 } from './utils/password.utils'
-import { NewUser, userModel } from '../schemas'
+import { NewUser, userModel, userRolesModel } from '../schemas'
 
 export const findUserByUsername = async (username: string) => {
   const [user] = await db
@@ -38,54 +38,64 @@ export const getUserDetailsByUserId = async (userId: number) => {
 
 // Create user function
 
-export const createUser = async (userData: NewUser) => {
-  try {
-    const existingUser = await findUserByUsername(userData.username)
+export const createUser = async (
+  dbInstance: typeof db,
+  userData: NewUser & {
+    userCompanies?: number[]
+    createdBy: number
+  }
+) => {
+  const [existingUser] = await dbInstance
+    .select()
+    .from(userModel)
+    .where(eq(userModel.username, userData.username))
 
-    if (existingUser) {
-      throw BadRequestError('Username already registered, Please Try Another')
-    }
+  if (existingUser) {
+    throw BadRequestError('Username already registered, Please Try Another')
+  }
 
-    validatePassword(userData.password)
-    const hashedPassword = await hashPassword(userData.password)
+  validatePassword(userData.password)
 
-    const [newUserId] = await db
-      .insert(userModel)
-      .values({
-        username: userData.username,
-        password: hashedPassword,
-        active: userData.active,
-        roleId: userData.roleId,
-      })
-      .$returningId()
-    //  // Insert user-company relationships
-    //  if (companyIds.length > 0) {
-    //   await db.insert(userCompanyModel).values(
-    //     companyIds.map(companyId => ({
-    //       userId: newUserId.userId,
-    //       companyId,
-    //     }))
-    //   );
-    // }
+  const hashedPassword = await hashPassword(userData.password)
 
-    return {
-      id: newUserId,
-      username: userData.username,
-      password: userData.password,
-      active: userData.active,
-      roleId: userData.roleId,
-    }
+  if (userData.roleId == null) {
+    throw BadRequestError('Role ID is required')
+  }
 
-    // Insert user-location relationships
-  } catch (error) {
-    throw error
+  const result = await dbInstance.insert(userModel).values({
+    username: userData.username,
+    password: hashedPassword,
+    active: userData.active ?? true,
+    isPasswordResetRequired: true,
+    roleId: userData.roleId,
+    tenantId: userData.tenantId,
+  })
+
+  const newUserId = result[0].insertId
+
+  await dbInstance.insert(userRolesModel).values({
+    userId: newUserId,
+    roleId: userData.roleId,
+  })
+
+  return {
+    userId: newUserId,
+    username: userData.username,
+    roleId: userData.roleId,
+    tenantId: userData.tenantId,
+    active: userData.active,
+    isPasswordResetRequired: userData.isPasswordResetRequired,
+    userCompanies: userData.userCompanies ?? [],
   }
 }
 
 //get user api
 
-export const getUsers = async () => {
-  const userList = await db.select().from(userModel)
+export const getUsers = async (tenantId: number) => {
+  const userList = await db
+    .select()
+    .from(userModel)
+    .where(eq(userModel.tenantId, tenantId))
 
   return userList
 }
@@ -145,11 +155,10 @@ export const loginUser = async (username: string, password: string) => {
   }
 
   // fetch user details from db like role, voucher types, company, location, etc.
-  const userDetails = await getUserDetailsByUserId(user.userId);
+  const userDetails = await getUserDetailsByUserId(user.userId)
 
-  const permissions = userDetails?.role?.rolePermissions.map((ur) =>
-    ur.permission.name 
-  ) || '';
+  const permissions =
+    userDetails?.role?.rolePermissions.map((ur) => ur.permission.name) || ''
 
   const token = generateAccessToken({
     userId: user.userId,

@@ -17,7 +17,8 @@ import {
 
 export const studentPaymentReport = async (
   fromDate: string,
-  toDate: string
+  toDate: string,
+  tenantId: number
 ) => {
   return await db
     .select({
@@ -69,7 +70,8 @@ export const studentPaymentReport = async (
     .where(
       and(
         sql`${studentPaymentsModel.paymentDate} >= ${fromDate}`,
-        sql`${studentPaymentsModel.paymentDate} <= ${toDate}`
+        sql`${studentPaymentsModel.paymentDate} <= ${toDate}`,
+        eq(studentPaymentsModel.tenantId, tenantId)
       )
     )
     .orderBy(studentPaymentsModel.paymentDate)
@@ -77,7 +79,8 @@ export const studentPaymentReport = async (
 
 export const studentBankPaymentReport = async (
   fromDate: string,
-  toDate: string
+  toDate: string,
+  tenantId: number
 ) => {
   return await db
     .select({
@@ -119,7 +122,8 @@ export const studentBankPaymentReport = async (
       and(
         eq(studentPaymentsModel.method, 'bank'),
         gte(studentPaymentsModel.paymentDate, new Date(fromDate)),
-        lte(studentPaymentsModel.paymentDate, new Date(toDate))
+        lte(studentPaymentsModel.paymentDate, new Date(toDate)),
+        eq(studentPaymentsModel.tenantId, tenantId)
       )
     )
     .orderBy(studentPaymentsModel.paymentDate)
@@ -127,7 +131,8 @@ export const studentBankPaymentReport = async (
 
 export const studentMfsPaymentReport = async (
   fromDate: string,
-  toDate: string
+  toDate: string,
+  tenantId: number
 ) => {
   return await db
     .select({
@@ -167,7 +172,8 @@ export const studentMfsPaymentReport = async (
       and(
         sql`${studentPaymentsModel.method} IN ('bkash', 'nagad', 'rocket')`,
         gte(studentPaymentsModel.paymentDate, new Date(fromDate)),
-        lte(studentPaymentsModel.paymentDate, new Date(toDate))
+        lte(studentPaymentsModel.paymentDate, new Date(toDate)),
+        eq(studentPaymentsModel.tenantId, tenantId)
       )
     )
     .orderBy(studentPaymentsModel.paymentDate)
@@ -175,7 +181,8 @@ export const studentMfsPaymentReport = async (
 
 export const studentCashPaymentReport = async (
   fromDate: string,
-  toDate: string
+  toDate: string,
+  tenantId: number
 ) => {
   return await db
     .select({
@@ -211,7 +218,8 @@ export const studentCashPaymentReport = async (
       and(
         eq(studentPaymentsModel.method, 'cash'),
         gte(studentPaymentsModel.paymentDate, new Date(fromDate)),
-        lte(studentPaymentsModel.paymentDate, new Date(toDate))
+        lte(studentPaymentsModel.paymentDate, new Date(toDate)),
+        eq(studentPaymentsModel.tenantId, tenantId)
       )
     )
     .orderBy(studentPaymentsModel.paymentDate)
@@ -219,7 +227,7 @@ export const studentCashPaymentReport = async (
 
 const generateRandomIntId = () => Math.floor(Math.random() * 1_000_000_000)
 
-export const incomeReport = async (fromDate: string, toDate: string) => {
+export const incomeReport = async (fromDate: string, toDate: string, tenantId: number) => {
   const incomeData = await db
     .select({
       id: sql<number>`${generateRandomIntId()}`.as('id'),
@@ -249,7 +257,8 @@ export const incomeReport = async (fromDate: string, toDate: string) => {
     .where(
       and(
         gte(incomeModel.date, new Date(fromDate)),
-        lte(incomeModel.date, new Date(toDate))
+        lte(incomeModel.date, new Date(toDate)),
+        eq(incomeModel.tenantId, tenantId)
       )
     )
 
@@ -277,7 +286,8 @@ export const incomeReport = async (fromDate: string, toDate: string) => {
     .where(
       and(
         gte(studentPaymentsModel.paymentDate, new Date(fromDate)),
-        lte(studentPaymentsModel.paymentDate, new Date(toDate))
+        lte(studentPaymentsModel.paymentDate, new Date(toDate)),
+        eq(studentPaymentsModel.tenantId, tenantId)
       )
     )
 
@@ -286,7 +296,7 @@ export const incomeReport = async (fromDate: string, toDate: string) => {
   )
 }
 
-export const expenseReport = async (fromDate: string, toDate: string) => {
+export const expenseReport = async (fromDate: string, toDate: string, tenantId: number) => {
   const result = await db
     .select({
       expenseId: expenseModel.expenseId,
@@ -315,7 +325,8 @@ export const expenseReport = async (fromDate: string, toDate: string) => {
     .where(
       and(
         gte(expenseModel.date, new Date(fromDate)),
-        lte(expenseModel.date, new Date(toDate))
+        lte(expenseModel.date, new Date(toDate)),
+        eq(expenseModel.tenantId, tenantId)
       )
     )
     .orderBy(expenseModel.date)
@@ -325,7 +336,8 @@ export const expenseReport = async (fromDate: string, toDate: string) => {
 
 export const getTransactionReport = async (
   fromDate: string,
-  toDate: string
+  toDate: string,
+  tenantId: number
 ) => {
   const query = sql`
 (
@@ -369,6 +381,7 @@ export const getTransactionReport = async (
   LEFT JOIN mfs
     ON mfs.mfs_id = COALESCE(bmc.from_mfs_id, bmc.to_mfs_id)
   WHERE bmc.date BETWEEN ${fromDate} AND ${toDate}
+  AND bmc.tenant_id = ${tenantId}
 )
 
 UNION ALL
@@ -381,7 +394,7 @@ UNION ALL
     FLOOR(RAND() * 1000000000) AS id,
     e.date AS date,
     'expense' AS particulars,
-    e.name AS remarks,
+    e.description AS remarks,
     0 AS deposit,
     e.amount AS withdraw,
     CASE
@@ -402,6 +415,7 @@ UNION ALL
   LEFT JOIN mfs
     ON e.mfs_id = mfs.mfs_id
   WHERE e.date BETWEEN ${fromDate} AND ${toDate}
+  AND e.tenant_id = ${tenantId}
 )
 
 UNION ALL
@@ -435,6 +449,7 @@ UNION ALL
   LEFT JOIN mfs
     ON sp.mfs_id = mfs.mfs_id
   WHERE sp.payment_date BETWEEN ${fromDate} AND ${toDate}
+  AND sp.tenant_id = ${tenantId}
 )
 
 UNION ALL
@@ -468,6 +483,7 @@ UNION ALL
   LEFT JOIN mfs
     ON i.mfs_id = mfs.mfs_id
   WHERE i.date BETWEEN ${fromDate} AND ${toDate}
+  AND i.tenant_id = ${tenantId}
 )
 
 ORDER BY date ASC

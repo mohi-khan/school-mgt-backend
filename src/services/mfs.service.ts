@@ -20,8 +20,8 @@ export const createMfs = async (
 }
 
 // Get All
-export const getAllMfss = async () => {
-  return await db.select().from(mfsModel)
+export const getAllMfss = async (tenantId: number) => {
+  return await db.select().from(mfsModel).where(eq(mfsModel.tenantId, tenantId))
 }
 
 // Get By Id
@@ -40,10 +40,7 @@ export const getMfsById = async (mfsId: number) => {
 }
 
 // Update
-export const editMfs = async (
-  mfsId: number,
-  mfsData: Partial<NewMfs>
-) => {
+export const editMfs = async (mfsId: number, mfsData: Partial<NewMfs>) => {
   const [updatedMfs] = await db
     .update(mfsModel)
     .set(mfsData)
@@ -58,8 +55,6 @@ export const editMfs = async (
 
 // Delete
 export const deleteMfs = async (mfsId: number) => {
-  const result = await db
-    .delete(mfsModel)
-    .where(eq(mfsModel.mfsId, mfsId));
-  return { message: "Fees Group deleted successfully" };
-};
+  const result = await db.delete(mfsModel).where(eq(mfsModel.mfsId, mfsId))
+  return { message: 'Fees Group deleted successfully' }
+}

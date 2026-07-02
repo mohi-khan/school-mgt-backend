@@ -25,7 +25,15 @@ export const createExamGroupController = async (
 ) => {
   try {
     requirePermission(req, 'create_exam_group')
-    const examGroupsData = createExamGroupSchema.parse(req.body)
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const data = {
+      ...req.body,
+      tenantId,
+    }
+    const examGroupsData = createExamGroupSchema.parse(data)
     const examGroups = await createExamGroup(examGroupsData)
 
     res.status(201).json({
@@ -44,7 +52,11 @@ export const getAllExamGroupsController = async (
 ) => {
   try {
     requirePermission(req, 'view_exam_group')
-    const examGroupss = await getAllExamGroups()
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const examGroupss = await getAllExamGroups(tenantId)
 
     res.status(200).json(examGroupss)
   } catch (error) {

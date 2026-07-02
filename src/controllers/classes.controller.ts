@@ -30,7 +30,23 @@ export const createClassesController = async (
 ) => {
   try {
     requirePermission(req, 'create_class')
-    const { classData, sectionIds } = createClassesSchema.parse(req.body)
+
+    const tenantId = req.user?.tenantId
+
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+
+    // Validate request body
+    const classAndSectionData = createClassesSchema.parse(req.body)
+
+    // Prepare data
+    const classData = {
+      ...classAndSectionData.classData,
+      tenantId,
+    }
+
+    const sectionIds = classAndSectionData.sectionIds
 
     // Call service
     const newClass = await createClasses({
@@ -54,7 +70,11 @@ export const getAllClassessController = async (
 ) => {
   try {
     requirePermission(req, 'view_class')
-    const classess = await getAllClasses()
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const classess = await getAllClasses(tenantId)
 
     res.status(200).json(classess)
   } catch (error) {

@@ -1,5 +1,5 @@
 import { db } from '../config/database'
-import { sql } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 import {
   bankAccountModel,
   bankMFsCashModel,
@@ -12,7 +12,7 @@ import {
   studentPaymentsModel,
 } from '../schemas'
 
-export const getOverallSchoolSummary = async () => {
+export const getOverallSchoolSummary = async (tenantId: number) => {
   /** -------------------------------
    * OPENING BALANCE
    -------------------------------- */
@@ -22,6 +22,7 @@ export const getOverallSchoolSummary = async () => {
       amount: openingBalanceModel.amount,
     })
     .from(openingBalanceModel)
+    .where(eq(openingBalanceModel.tenantId, tenantId))
 
   const opening = { cash: 0, bank: 0, mfs: 0 }
 
@@ -37,12 +38,14 @@ export const getOverallSchoolSummary = async () => {
       cash: sql<number>`SUM(CASE WHEN ${studentPaymentsModel.method} = 'cash' THEN ${studentPaymentsModel.paidAmount} ELSE 0 END)`,
     })
     .from(studentPaymentsModel)
+    .where(eq(studentPaymentsModel.tenantId, tenantId))
 
   const [income] = await db
     .select({
       cash: sql<number>`SUM(CASE WHEN ${incomeModel.method} = 'cash' THEN ${incomeModel.amount} ELSE 0 END)`,
     })
     .from(incomeModel)
+    .where(eq(incomeModel.tenantId, tenantId))
 
   /** -------------------------------
    * EXPENSE
@@ -52,6 +55,7 @@ export const getOverallSchoolSummary = async () => {
       cash: sql<number>`SUM(CASE WHEN ${expenseModel.method} = 'cash' THEN ${expenseModel.amount} ELSE 0 END)`,
     })
     .from(expenseModel)
+    .where(eq(expenseModel.tenantId, tenantId))
 
   /** -------------------------------
    * TRANSFERS (bank_mfs_cash)
@@ -82,6 +86,7 @@ export const getOverallSchoolSummary = async () => {
       `,
     })
     .from(bankMFsCashModel)
+    .where(eq(bankMFsCashModel.tenantId, tenantId))
 
   /** -------------------------------
    * BANK & MFS ACCOUNT BALANCES
@@ -91,12 +96,14 @@ export const getOverallSchoolSummary = async () => {
       total: sql<number>`COALESCE(SUM(${bankAccountModel.balance}), 0)`,
     })
     .from(bankAccountModel)
+    .where(eq(bankAccountModel.tenantId, tenantId))
 
   const [mfsAccountsBalance] = await db
     .select({
       total: sql<number>`COALESCE(SUM(${mfsModel.balance}), 0)`,
     })
     .from(mfsModel)
+    .where(eq(mfsModel.tenantId, tenantId))
 
   /** -------------------------------
    * FINAL BALANCES
@@ -137,7 +144,7 @@ const MONTHS = [
   'December',
 ]
 
-export const getCurrentYearMonthlyIncome = async () => {
+export const getCurrentYearMonthlyIncome = async (tenantId: number) => {
   const currentYear = new Date().getFullYear()
 
   const incomeData = await db
@@ -151,7 +158,12 @@ export const getCurrentYearMonthlyIncome = async () => {
       incomeHeadModel,
       sql`${incomeModel.incomeHeadId} = ${incomeHeadModel.incomeHeadId}`
     )
-    .where(sql`YEAR(${incomeModel.date}) = ${currentYear}`)
+    .where(
+      and(
+        sql`YEAR(${incomeModel.date}) = ${currentYear}`,
+        eq(incomeModel.tenantId, tenantId)
+      )
+    )
     .groupBy(sql`MONTH(${incomeModel.date}), ${incomeModel.incomeHeadId}`)
 
   const studentPaymentData = await db
@@ -162,7 +174,12 @@ export const getCurrentYearMonthlyIncome = async () => {
       amount: sql<number>`SUM(${studentPaymentsModel.paidAmount})`.as('amount'),
     })
     .from(studentPaymentsModel)
-    .where(sql`YEAR(${studentPaymentsModel.paymentDate}) = ${currentYear}`)
+    .where(
+      and(
+        sql`YEAR(${studentPaymentsModel.paymentDate}) = ${currentYear}`,
+        eq(studentPaymentsModel.tenantId, tenantId)
+      )
+    )
     .groupBy(sql`MONTH(${studentPaymentsModel.paymentDate})`)
 
   const monthMap: Record<
@@ -229,7 +246,7 @@ export const getCurrentYearMonthlyIncome = async () => {
   }))
 }
 
-export const getCurrentYearMonthlyExpense = async () => {
+export const getCurrentYearMonthlyExpense = async (tenantId: number) => {
   const currentYear = new Date().getFullYear()
 
   const expenseData = await db
@@ -243,7 +260,12 @@ export const getCurrentYearMonthlyExpense = async () => {
       expenseHeadModel,
       sql`${expenseModel.expenseHeadId} = ${expenseHeadModel.expenseHeadId}`
     )
-    .where(sql`YEAR(${expenseModel.date}) = ${currentYear}`)
+    .where(
+      and(
+        sql`YEAR(${expenseModel.date}) = ${currentYear}`,
+        eq(expenseModel.tenantId, tenantId)
+      )
+    )
     .groupBy(sql`MONTH(${expenseModel.date}), ${expenseModel.expenseHeadId}`)
 
   const monthMap: Record<

@@ -9,7 +9,16 @@ export const collectFeesController = async (req: Request, res: Response) => {
   try {
     requirePermission(req, 'collect_student_fees')
 
-    const result = await collectFees(req.body)
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const data = {
+      ...req.body,
+      tenantId,
+    }
+
+    const result = await collectFees(data)
 
     res.status(200).json({
       success: true,

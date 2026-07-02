@@ -35,7 +35,7 @@ const toBank = alias(bankAccountModel, 'to_bank')
 const fromMfs = alias(mfsModel, 'from_mfs')
 const toMfs = alias(mfsModel, 'to_mfs')
 
-export const getAllBankMfsCash = async () => {
+export const getAllBankMfsCash = async (tenantId: number) => {
   return await db
     .select({
       // ===== Bank ↔ MFS Cash table =====
@@ -75,6 +75,7 @@ export const getAllBankMfsCash = async () => {
       toMfsType: toMfs.mfsType,
     })
     .from(bankMFsCashModel)
+    .where(eq(bankMFsCashModel.tenantId, tenantId))
     .leftJoin(
       fromBank,
       eq(bankMFsCashModel.fromBankAccountId, fromBank.bankAccountId)

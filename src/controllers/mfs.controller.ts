@@ -25,7 +25,15 @@ export const createMfsController = async (
 ) => {
   try {
     requirePermission(req, 'create_mfs')
-    const mfsData = createMfsSchema.parse(req.body)
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const data = {
+      ...req.body,
+      tenantId,
+    }
+    const mfsData = createMfsSchema.parse(data)
     const mfs = await createMfs(mfsData)
 
     res.status(201).json({
@@ -44,7 +52,11 @@ export const getAllMfssController = async (
 ) => {
   try {
     requirePermission(req, 'view_mfs')
-    const mfss = await getAllMfss()
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const mfss = await getAllMfss(tenantId)
 
     res.status(200).json(mfss)
   } catch (error) {

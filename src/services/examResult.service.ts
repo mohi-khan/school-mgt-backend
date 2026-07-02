@@ -35,7 +35,7 @@ export const createExamResult = async (
 }
 
 // Get All
-export const getAllExamResults = async () => {
+export const getAllExamResults = async (tenantId: number) => {
   return await db
     .select({
       examResultId: examResultModel.examResultId,
@@ -61,6 +61,7 @@ export const getAllExamResults = async () => {
       updatedAt: examResultModel.updatedAt,
     })
     .from(examResultModel)
+    .where(eq(examResultModel.tenantId, tenantId))
     .leftJoin(
       sessionsModel,
       eq(examResultModel.sessionId, sessionsModel.sessionId)

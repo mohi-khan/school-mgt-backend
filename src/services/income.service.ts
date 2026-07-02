@@ -20,7 +20,7 @@ export const createIncome = async (
 }
 
 // Get All
-export const getAllIncomes = async () => {
+export const getAllIncomes = async (tenantId: number) => {
   return await db
     .select({
       // income table fields
@@ -45,6 +45,7 @@ export const getAllIncomes = async () => {
       updatedAt: incomeModel.updatedAt,
     })
     .from(incomeModel)
+    .where(eq(incomeModel.tenantId, tenantId))
     .leftJoin(
       incomeHeadModel,
       eq(incomeModel.incomeHeadId, incomeHeadModel.incomeHeadId)

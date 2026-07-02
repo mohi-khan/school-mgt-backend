@@ -38,8 +38,16 @@ export const createBankMfsCashController = async (
 ) => {
   try {
     requirePermission(req, 'create_bank_mfs_cash')
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const data = {
+      ...req.body,
+      tenantId,
+    }
     const bankToBankConversionData = createBankMfsCashSchema.parse(
-      req.body
+      data
     )
     const bankToBankConversion = await createBankMfsCash(
       bankToBankConversionData
@@ -61,7 +69,11 @@ export const getAllBankMfsCashController = async (
 ) => {
   try {
     requirePermission(req, 'view_bank_mfs_cash')
-    const bankToBankConversions = await getAllBankMfsCash()
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const bankToBankConversions = await getAllBankMfsCash(tenantId)
 
     res.status(200).json(bankToBankConversions)
   } catch (error) {

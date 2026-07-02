@@ -33,7 +33,15 @@ export const createIncomeController = async (
 ) => {
   try {
     requirePermission(req, 'create_income')
-    const incomeData = createIncomeSchema.parse(req.body)
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const data = {
+      ...req.body,
+      tenantId,
+    }
+    const incomeData = createIncomeSchema.parse(data)
     const income = await createIncome(incomeData)
 
     res.status(201).json({
@@ -52,7 +60,11 @@ export const getAllIncomesController = async (
 ) => {
   try {
     requirePermission(req, 'view_income')
-    const incomes = await getAllIncomes()
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const incomes = await getAllIncomes(tenantId)
 
     res.status(200).json(incomes)
   } catch (error) {

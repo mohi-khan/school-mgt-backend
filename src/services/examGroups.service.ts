@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm'
 import { db } from '../config/database'
-import { examGroupsModel, NewExamGroup } from '../schemas'
+import { examGroupsModel, examsModel, NewExamGroup } from '../schemas'
 import { BadRequestError } from './utils/errors.utils'
 
 // Create
@@ -20,8 +20,11 @@ export const createExamGroup = async (
 }
 
 // Get All
-export const getAllExamGroups = async () => {
-  return await db.select().from(examGroupsModel)
+export const getAllExamGroups = async (tenantId: number) => {
+  return await db
+    .select()
+    .from(examGroupsModel)
+    .where(eq(examsModel.tenantId, tenantId))
 }
 
 // Get By Id
@@ -60,6 +63,6 @@ export const editExamGroup = async (
 export const deleteExamGroup = async (examGroupsId: number) => {
   const result = await db
     .delete(examGroupsModel)
-    .where(eq(examGroupsModel.examGroupsId, examGroupsId));
-  return { message: "Fees Group deleted successfully" };
-};
+    .where(eq(examGroupsModel.examGroupsId, examGroupsId))
+  return { message: 'Fees Group deleted successfully' }
+}

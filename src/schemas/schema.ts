@@ -28,6 +28,11 @@ export const userModel = mysqlTable('users', {
   roleId: int('role_id').references(() => roleModel.roleId, {
     onDelete: 'set null',
   }),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
+    })
+    .notNull(),
   isPasswordResetRequired: boolean('is_password_reset_required').default(true),
   createdAt: timestamp('created_at').default(sql`CURRENT_TIMESTAMP`),
   updatedAt: timestamp('updated_at')
@@ -59,6 +64,18 @@ export const userRolesModel = mysqlTable('user_roles', {
 // ========================
 // Business Domain Tables
 // ========================
+export const tenantModel = mysqlTable('tenants', {
+  tenantId: int('tenant_id').primaryKey().autoincrement(),
+  tenantName: varchar('tenant_name', { length: 100 }).notNull(),
+  status: boolean('status').default(true),
+  createdBy: int('created_by').notNull(),
+  createdAt: timestamp('created_at').default(sql`CURRENT_TIMESTAMP`),
+  updatedBy: int('updated_by'),
+  updatedAt: timestamp('updated_at').default(
+    sql`CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`
+  ),
+})
+
 export const sessionsModel = mysqlTable('sessions', {
   sessionId: int('session_id').primaryKey().autoincrement(),
   sessionName: varchar('session_name', { length: 20 }).notNull(),
@@ -72,6 +89,11 @@ export const classesModel = mysqlTable('classes', {
   classCode: varchar('class_code', { length: 20 }).unique(),
   description: varchar('description', { length: 255 }),
   isActive: boolean('is_active').default(true),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
+    })
+    .notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
@@ -81,6 +103,11 @@ export const divisionsModel = mysqlTable('divisions', {
   divisionCode: varchar('division_code', { length: 20 }).unique(),
   description: varchar('description', { length: 255 }),
   isActive: boolean('is_active').default(true),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
+    })
+    .notNull(),
   createdBy: int('created_by').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedBy: int('updated_by'),
@@ -105,6 +132,11 @@ export const classSectionsModel = mysqlTable('class_sections', {
   sectionId: int('section_id').references(() => sectionsModel.sectionId, {
     onDelete: 'set null',
   }),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
+    })
+    .notNull(),
   roomNo: varchar('room_no', { length: 20 }),
   classTeacherId: int('class_teacher_id'),
   isActive: boolean('is_active').default(true),
@@ -118,6 +150,11 @@ export const divisionModel = mysqlTable('divisions', {
   divisionCode: varchar('division_code', { length: 20 }).unique(),
   description: varchar('description', { length: 255 }),
   isActive: boolean('is_active').default(true),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
+    })
+    .notNull(),
   createdBy: int('created_by').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedBy: int('updated_by'),
@@ -128,6 +165,11 @@ export const openingBalanceModel = mysqlTable('opening_balance', {
   openingBalanceId: int('opening_balance_id').primaryKey().autoincrement(),
   type: mysqlEnum('type', ['cash', 'bank', 'mfs']).notNull(),
   amount: double('amount').notNull(),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
+    })
+    .notNull(),
   createdBy: int('created_by').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedBy: int('updated_by'),
@@ -141,6 +183,11 @@ export const bankAccountModel = mysqlTable('bank_account', {
   branch: varchar('branch', { length: 100 }),
   balance: double('balance').notNull(),
   accountName: varchar('account_name', { length: 100 }).notNull(),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
+    })
+    .notNull(),
   createdBy: int('created_by').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedBy: int('updated_by'),
@@ -153,6 +200,11 @@ export const mfsModel = mysqlTable('mfs', {
   mfsNumber: varchar('mfs_number', { length: 15 }).notNull(),
   mfsType: mysqlEnum('mfs_type', ['bkash', 'nagad', 'rocket']).notNull(),
   balance: double('balance').notNull(),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
+    })
+    .notNull(),
   createdBy: int('created_by').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedBy: int('updated_by'),
@@ -163,6 +215,11 @@ export const feesGroupModel = mysqlTable('fees_groups', {
   feesGroupId: int('fees_group_id').primaryKey().autoincrement(),
   groupName: varchar('group_name', { length: 100 }).notNull(),
   description: text('description'),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
+    })
+    .notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
@@ -172,6 +229,11 @@ export const feesTypeModel = mysqlTable('fees_types', {
   typeName: varchar('type_name', { length: 100 }).notNull(),
   feesCode: varchar('fees_code', { length: 50 }).unique(),
   description: text('description'),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
+    })
+    .notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
@@ -194,6 +256,11 @@ export const feesMasterModel = mysqlTable('fees_master', {
     'percentage',
     'fixed amount',
   ]).notNull(),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
+    })
+    .notNull(),
   percentageFineAmount: double('percentage_fine_amount'),
   fixedFineAmount: double('fixed_fine_amount'),
   perDay: boolean('per_day').default(false),
@@ -221,6 +288,11 @@ export const studentsModel = mysqlTable('students', {
   sessionId: int('session_id')
     .references(() => sessionsModel.sessionId, {
       onDelete: 'cascade',
+    })
+    .notNull(),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
     })
     .notNull(),
   firstName: varchar('first_name', { length: 50 }).notNull(),
@@ -275,6 +347,11 @@ export const studentFeesModel = mysqlTable('student_fees', {
   paidAmount: double('paid_amount'),
   remainingAmount: double('remaining_amount'),
   status: mysqlEnum(['Paid', 'Unpaid', 'Partial']).default('Unpaid'),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
+    })
+    .notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })
@@ -318,6 +395,11 @@ export const studentPaymentsModel = mysqlTable('student_payments', {
   mfsId: int('mfs_id').references(() => mfsModel.mfsId, {
     onDelete: 'set null',
   }),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
+    })
+    .notNull(),
   paymentDate: date('payment_date').notNull(),
   paidAmount: double('paid_amount').notNull(),
   remarks: text('remarks'),
@@ -330,6 +412,11 @@ export const studentPromotionModel = mysqlTable('student_promotions', {
   studentId: int('student_id').references(() => studentsModel.studentId, {
     onDelete: 'set null',
   }),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
+    })
+    .notNull(),
   currentResult: mysqlEnum('current_result', ['Pass', 'Fail']),
   nextSession: mysqlEnum('next_session', ['Continue', 'Leave']),
   createdAt: timestamp('created_at').defaultNow(),
@@ -340,6 +427,11 @@ export const examGroupsModel = mysqlTable('exam_groups', {
   examGroupsId: int('exam_group_id').primaryKey().autoincrement(),
   examGroupName: varchar('exam_group_name', { length: 255 }).notNull(),
   description: text('description'),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
+    })
+    .notNull(),
   createdBy: int('created_by').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedBy: int('updated_by'),
@@ -369,6 +461,11 @@ export const examSubjectsModel = mysqlTable('exam_subjects', {
   sessionId: int('session_id').references(() => sessionsModel.sessionId, {
     onDelete: 'set null',
   }),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
+    })
+    .notNull(),
   createdBy: int('created_by').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedBy: int('updated_by'),
@@ -396,6 +493,11 @@ export const examsModel = mysqlTable('exams', {
       onDelete: 'set null',
     }
   ),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
+    })
+    .notNull(),
   createdBy: int('created_by').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedBy: int('updated_by'),
@@ -428,6 +530,11 @@ export const examResultModel = mysqlTable('exam_results', {
   classId: int('class_id').references(() => classesModel.classId, {
     onDelete: 'set null',
   }),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
+    })
+    .notNull(),
   gainedMarks: int('gained_marks').notNull(),
   createdBy: int('created_by').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
@@ -439,6 +546,11 @@ export const incomeHeadModel = mysqlTable('income_head', {
   incomeHeadId: int('income_head_id').primaryKey().autoincrement(),
   incomeHead: varchar('income_head', { length: 255 }).notNull(),
   description: text('description'),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
+    })
+    .notNull(),
   createdBy: int('created_by').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedBy: int('updated_by'),
@@ -447,7 +559,6 @@ export const incomeHeadModel = mysqlTable('income_head', {
 
 export const incomeModel = mysqlTable('income', {
   incomeId: int('income_id').primaryKey().autoincrement(),
-  name: varchar('name', { length: 255 }).notNull(),
   incomeHeadId: int('income_head_id').references(
     () => incomeHeadModel.incomeHeadId,
     {
@@ -472,6 +583,11 @@ export const incomeModel = mysqlTable('income', {
   mfsId: int('mfs_id').references(() => mfsModel.mfsId, {
     onDelete: 'set null',
   }),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
+    })
+    .notNull(),
   amount: double('amount').notNull(),
   description: text('description'),
   createdBy: int('created_by').notNull(),
@@ -484,6 +600,11 @@ export const expenseHeadModel = mysqlTable('expense_head', {
   expenseHeadId: int('expense_head_id').primaryKey().autoincrement(),
   expenseHead: varchar('expense_head', { length: 255 }).notNull(),
   description: text('description'),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
+    })
+    .notNull(),
   createdBy: int('created_by').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedBy: int('updated_by'),
@@ -498,7 +619,6 @@ export const expenseModel = mysqlTable('expense', {
       onDelete: 'set null',
     }
   ),
-  name: varchar('name', { length: 255 }).notNull(),
   invoiceNumber: int('invoice_number').notNull(),
   date: date('date').notNull(),
   method: mysqlEnum('method', [
@@ -517,6 +637,11 @@ export const expenseModel = mysqlTable('expense', {
   mfsId: int('mfs_id').references(() => mfsModel.mfsId, {
     onDelete: 'set null',
   }),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
+    })
+    .notNull(),
   amount: double('amount').notNull(),
   description: text('description'),
   createdBy: int('created_by').notNull(),
@@ -545,6 +670,11 @@ export const bankMFsCashModel = mysqlTable('bank_mfs_cash', {
   toMfsId: int('to_mfs_id').references(() => mfsModel.mfsId, {
     onDelete: 'set null',
   }),
+  tenantId: int('tenant_id')
+    .references(() => tenantModel.tenantId, {
+      onDelete: 'restrict',
+    })
+    .notNull(),
   amount: double('amount').notNull(),
   date: date('date').notNull(),
   description: text('description'),

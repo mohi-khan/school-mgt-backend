@@ -25,7 +25,15 @@ export const createFeesGroupController = async (
 ) => {
   try {
     requirePermission(req, 'create_fees_group')
-    const feesGroupData = createFeesGroupSchema.parse(req.body)
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const data = {
+      ...req.body,
+      tenantId,
+    }
+    const feesGroupData = createFeesGroupSchema.parse(data)
     const feesGroup = await createFeesGroup(feesGroupData)
 
     res.status(201).json({
@@ -44,7 +52,11 @@ export const getAllFeesGroupsController = async (
 ) => {
   try {
     requirePermission(req, 'view_fees_group')
-    const feesGroups = await getAllFeesGroups()
+    const tenantId = req.user?.tenantId
+    if (tenantId === undefined) {
+      throw new Error('Tenant ID is required')
+    }
+    const feesGroups = await getAllFeesGroups(tenantId)
 
     res.status(200).json(feesGroups)
   } catch (error) {
