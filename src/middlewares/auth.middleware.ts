@@ -40,7 +40,7 @@ export const authenticateUser = async (
       hasPermission: (perm: string) => permissions.includes(perm),
       hasRole: (role: number) => decoded.role === role,
     }
-    console.log('🚀 ~ authenticateUser ~ req.user:', req.user)
+    // console.log('🚀 ~ authenticateUser ~ req.user:', req.user)
     // console.log('permissions',permissions)
     next()
   } catch (error) {
