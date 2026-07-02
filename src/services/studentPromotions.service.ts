@@ -7,16 +7,19 @@ import {
   studentsModel,
 } from '../schemas'
 
+interface PromoteStudent {
+  studentId: number
+  classId: number
+  sectionId: number
+  sessionId: number
+  divisionId: number
+  tenantId: number
+  currentResult: 'Pass' | 'Fail'
+  nextSession: 'Continue' | 'Leave'
+}
+
 interface PromoteRequest {
-  students: {
-    studentId: number
-    classId: number
-    sectionId: number
-    sessionId: number
-    divisionId: number
-    currentResult: 'Pass' | 'Fail'
-    nextSession: 'Continue' | 'Leave'
-  }[]
+  students: PromoteStudent | PromoteStudent[]
   feesMasterIds: number[]
 }
 
@@ -33,7 +36,11 @@ interface PromotionResult {
 export const promoteStudents = async (
   input: PromoteRequest
 ): Promise<PromotionResult> => {
-  const { students, feesMasterIds } = input
+  const { feesMasterIds } = input
+
+  const students = Array.isArray(input.students)
+    ? input.students
+    : [input.students]
 
   const promotedStudents: any[] = []
   const notPromotedStudents: PromotionResult['notPromotedStudents'] = []
@@ -46,6 +53,7 @@ export const promoteStudents = async (
         sectionId,
         sessionId,
         divisionId,
+        tenantId,
         currentResult,
         nextSession,
       } = studentData
@@ -60,6 +68,7 @@ export const promoteStudents = async (
           sectionId: studentsModel.sectionId,
           sessionId: studentsModel.sessionId,
           divisionId: studentsModel.divisionId,
+          tenantId: studentsModel.tenantId,
         })
         .from(studentsModel)
         .where(eq(studentsModel.studentId, studentId))
@@ -141,6 +150,7 @@ export const promoteStudents = async (
           paidAmount: 0,
           remainingAmount: feeMaster.amount,
           status: 'Unpaid',
+          tenantId,
         })
       }
 
@@ -149,6 +159,7 @@ export const promoteStudents = async (
         studentId,
         currentResult,
         nextSession,
+        tenantId: studentData.tenantId,
       })
 
       promotedStudents.push({

@@ -15,6 +15,7 @@ import { z } from 'zod'
 const createClassesSchema = z.object({
   classData: createInsertSchema(classesModel).omit({
     classId: true,
+    tenantId: true,
     createdAt: true,
     updatedAt: true,
   }),
