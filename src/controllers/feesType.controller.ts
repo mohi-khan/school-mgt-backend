@@ -14,6 +14,7 @@ import {
 const createFeesTypeSchema = createInsertSchema(feesTypeModel).omit({
   feesTypeId: true,
   createdAt: true,
+  updatedAt: true,
 })
 
 const editFeesTypeSchema = createFeesTypeSchema.partial()
