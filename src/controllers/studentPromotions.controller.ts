@@ -12,13 +12,20 @@ export const promoteStudentsController = async (
     if (tenantId === undefined) {
       throw new Error('Tenant ID is required')
     }
-    const data = {
-      ...req.body,
-      tenantId,
-    }
+    const students = Array.isArray(req.body.students)
+      ? req.body.students.map((student: any) => ({
+          ...student,
+          tenantId,
+        }))
+      : {
+          ...req.body.students,
+          tenantId,
+        }
 
-    const result = await promoteStudents(data)
-
+    const result = await promoteStudents({
+      students,
+      feesMasterIds: req.body.feesMasterIds,
+    })
     res.status(200).json(result)
   } catch (err: any) {
     res.status(500).json({
