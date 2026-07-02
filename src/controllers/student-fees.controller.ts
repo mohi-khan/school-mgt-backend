@@ -13,10 +13,11 @@ export const collectFeesController = async (req: Request, res: Response) => {
     if (tenantId === undefined) {
       throw new Error('Tenant ID is required')
     }
-    const data = {
-      ...req.body,
+
+    const data = req.body.map((item: any) => ({
+      ...item,
       tenantId,
-    }
+    }))
 
     const result = await collectFees(data)
 
