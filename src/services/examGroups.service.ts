@@ -24,7 +24,7 @@ export const getAllExamGroups = async (tenantId: number) => {
   return await db
     .select()
     .from(examGroupsModel)
-    .where(eq(examsModel.tenantId, tenantId))
+    .where(eq(examGroupsModel.tenantId, tenantId))
 }
 
 // Get By Id

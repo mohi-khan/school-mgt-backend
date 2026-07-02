@@ -52,6 +52,7 @@ export const collectFees = async (payload: any | any[]) => {
         sectionId: studentsModel.sectionId,
         sessionId: studentsModel.sessionId,
         divisionId: studentsModel.divisionId,
+        tenantId: studentsModel.tenantId,
       })
       .from(studentsModel)
       .where(eq(studentsModel.studentId, studentId))
@@ -93,6 +94,7 @@ export const collectFees = async (payload: any | any[]) => {
       sessionId: student.sessionId,
       method,
       bankAccountId: bankAccountId || null,
+      tenantId: student.tenantId,
       mfsId: mfsId || null,
       paymentDate: new Date(paymentDate),
       paidAmount,
