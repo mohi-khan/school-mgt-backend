@@ -120,11 +120,6 @@ export const sectionsModel = mysqlTable('sections', {
   sectionCode: varchar('section_code', { length: 20 }),
   description: varchar('description', { length: 255 }),
   isActive: boolean('is_active').default(true),
-  tenantId: int('tenant_id')
-    .references(() => tenantModel.tenantId, {
-      onDelete: 'restrict',
-    })
-    .notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').onUpdateNow(),
 })

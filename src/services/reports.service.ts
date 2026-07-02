@@ -394,7 +394,7 @@ UNION ALL
     FLOOR(RAND() * 1000000000) AS id,
     e.date AS date,
     'expense' AS particulars,
-    e.name AS remarks,
+    e.description AS remarks,
     0 AS deposit,
     e.amount AS withdraw,
     CASE

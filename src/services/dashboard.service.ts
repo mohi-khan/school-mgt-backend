@@ -38,12 +38,14 @@ export const getOverallSchoolSummary = async (tenantId: number) => {
       cash: sql<number>`SUM(CASE WHEN ${studentPaymentsModel.method} = 'cash' THEN ${studentPaymentsModel.paidAmount} ELSE 0 END)`,
     })
     .from(studentPaymentsModel)
+    .where(eq(studentPaymentsModel.tenantId, tenantId))
 
   const [income] = await db
     .select({
       cash: sql<number>`SUM(CASE WHEN ${incomeModel.method} = 'cash' THEN ${incomeModel.amount} ELSE 0 END)`,
     })
     .from(incomeModel)
+    .where(eq(incomeModel.tenantId, tenantId))
 
   /** -------------------------------
    * EXPENSE
@@ -53,6 +55,7 @@ export const getOverallSchoolSummary = async (tenantId: number) => {
       cash: sql<number>`SUM(CASE WHEN ${expenseModel.method} = 'cash' THEN ${expenseModel.amount} ELSE 0 END)`,
     })
     .from(expenseModel)
+    .where(eq(expenseModel.tenantId, tenantId))
 
   /** -------------------------------
    * TRANSFERS (bank_mfs_cash)
@@ -83,6 +86,7 @@ export const getOverallSchoolSummary = async (tenantId: number) => {
       `,
     })
     .from(bankMFsCashModel)
+    .where(eq(bankMFsCashModel.tenantId, tenantId))
 
   /** -------------------------------
    * BANK & MFS ACCOUNT BALANCES
@@ -92,12 +96,14 @@ export const getOverallSchoolSummary = async (tenantId: number) => {
       total: sql<number>`COALESCE(SUM(${bankAccountModel.balance}), 0)`,
     })
     .from(bankAccountModel)
+    .where(eq(bankAccountModel.tenantId, tenantId))
 
   const [mfsAccountsBalance] = await db
     .select({
       total: sql<number>`COALESCE(SUM(${mfsModel.balance}), 0)`,
     })
     .from(mfsModel)
+    .where(eq(mfsModel.tenantId, tenantId))
 
   /** -------------------------------
    * FINAL BALANCES
@@ -168,7 +174,12 @@ export const getCurrentYearMonthlyIncome = async (tenantId: number) => {
       amount: sql<number>`SUM(${studentPaymentsModel.paidAmount})`.as('amount'),
     })
     .from(studentPaymentsModel)
-    .where(sql`YEAR(${studentPaymentsModel.paymentDate}) = ${currentYear}`)
+    .where(
+      and(
+        sql`YEAR(${studentPaymentsModel.paymentDate}) = ${currentYear}`,
+        eq(studentPaymentsModel.tenantId, tenantId)
+      )
+    )
     .groupBy(sql`MONTH(${studentPaymentsModel.paymentDate})`)
 
   const monthMap: Record<
