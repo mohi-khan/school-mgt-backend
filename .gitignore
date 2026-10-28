@@ -4,3 +4,4 @@ dist
 migrations
 uploads
 config.bat
+.env
